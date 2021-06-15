@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C1D2E302677EC6D002680A5 /* BarcodesContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1D2E2F2677EC6D002680A5 /* BarcodesContentView.swift */; };
+		2C1D2E322677EDA7002680A5 /* BarcodeRC.rcproject in Sources */ = {isa = PBXBuildFile; fileRef = 2C1D2E312677EDA7002680A5 /* BarcodeRC.rcproject */; };
 		2C27448F2644DBAB0088E5DC /* qrImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 2C27448E2644DBAB0088E5DC /* qrImage.png */; };
 		2C3C67602674006B00B2B243 /* CarEngineRC1.rcproject in Sources */ = {isa = PBXBuildFile; fileRef = 2C3C675F2674006B00B2B243 /* CarEngineRC1.rcproject */; };
 		2C48248C264DC33300E230E6 /* CarEngineExampleContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C48248B264DC33300E230E6 /* CarEngineExampleContentView.swift */; };
@@ -25,6 +27,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C1D2E2F2677EC6D002680A5 /* BarcodesContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodesContentView.swift; sourceTree = "<group>"; };
+		2C1D2E312677EDA7002680A5 /* BarcodeRC.rcproject */ = {isa = PBXFileReference; lastKnownFileType = file.rcproject; path = BarcodeRC.rcproject; sourceTree = "<group>"; };
 		2C27448E2644DBAB0088E5DC /* qrImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = qrImage.png; sourceTree = "<group>"; };
 		2C3C675F2674006B00B2B243 /* CarEngineRC1.rcproject */ = {isa = PBXFileReference; lastKnownFileType = file.rcproject; path = CarEngineRC1.rcproject; sourceTree = "<group>"; };
 		2C48248B264DC33300E230E6 /* CarEngineExampleContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarEngineExampleContentView.swift; sourceTree = "<group>"; };
@@ -79,6 +83,7 @@
 				2C4C71B426436ADC00B462A9 /* ARCardsViewBuilderContentView.swift */,
 				2C4C71B026436A5C00B462A9 /* ARCardsContentView.swift */,
 				2C48248B264DC33300E230E6 /* CarEngineExampleContentView.swift */,
+				2C1D2E2F2677EC6D002680A5 /* BarcodesContentView.swift */,
 			);
 			path = CardContentViews;
 			sourceTree = "<group>";
@@ -161,6 +166,7 @@
 		2CDD909F264382D40076150D /* RealityComposer */ = {
 			isa = PBXGroup;
 			children = (
+				2C1D2E312677EDA7002680A5 /* BarcodeRC.rcproject */,
 				2C3C675F2674006B00B2B243 /* CarEngineRC1.rcproject */,
 				2CDD90A1264383540076150D /* ExampleRC.rcproject */,
 			);
@@ -247,8 +253,10 @@
 				2C4C71B526436ADC00B462A9 /* ARCardsViewBuilderContentView.swift in Sources */,
 				2C4C71A02643697F00B462A9 /* ExamplesApp.swift in Sources */,
 				2CDD90A2264383540076150D /* ExampleRC.rcproject in Sources */,
+				2C1D2E322677EDA7002680A5 /* BarcodeRC.rcproject in Sources */,
 				2C9371282644D3C3001932D1 /* DownloadsView.swift in Sources */,
 				2C48248F264DC40600E230E6 /* StringIdentifyingCardItem.swift in Sources */,
+				2C1D2E302677EC6D002680A5 /* BarcodesContentView.swift in Sources */,
 				2CDD909826437D630076150D /* ExampleCardItem.swift in Sources */,
 				2CDD909B26437E7A0076150D /* Tests.swift in Sources */,
 			);

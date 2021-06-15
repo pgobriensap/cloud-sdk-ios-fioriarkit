@@ -23,6 +23,10 @@ struct ContentView: View {
                     Text("2016 Engine Example")
                 }
                 
+                NavigationLink(destination: BarcodesContentView()) {
+                    Text("Test Barcodes")
+                }
+                
                 NavigationLink(destination: DownloadsView()) {
                     Text("Download Image Anchors")
                 }

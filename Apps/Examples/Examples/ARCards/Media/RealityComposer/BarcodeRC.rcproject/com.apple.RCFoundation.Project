@@ -1,0 +1,168 @@
+{
+  "__content" : [
+    {
+      "scenes" : [
+        {
+          "__content" : [
+            {
+              "arAnchorSpecification" : {
+                "name" : "image",
+                "physicalWidth" : 0.053158234804868698,
+                "url" : "image:f93e36522ad944904a3a4defc0664d93\/IMG_2584.heic"
+              },
+              "behaviors" : [
+
+              ],
+              "gravity" : [
+                0,
+                -9.8000001907348633,
+                0
+              ],
+              "identifier" : "4BECDA7F-7A3E-4AB8-9CD2-3A3CE46C5A25",
+              "material" : "concrete",
+              "overrides" : {
+                "children" : {
+                  "355A5E5C-3166-4734-8F24-5549651A6122" : {
+                    "overrides" : {
+                      "arguments" : [
+                        [
+                          "material",
+                          {
+                            "typeName" : "String",
+                            "value" : "standard"
+                          }
+                        ],
+                        [
+                          "materialColor",
+                          {
+                            "typeName" : "double4",
+                            "value" : [
+                              0.17000000178813934,
+                              0.17000000178813934,
+                              0.85000002384185791,
+                              1
+                            ]
+                          }
+                        ],
+                        [
+                          "type",
+                          {
+                            "typeName" : "String",
+                            "value" : "sphere"
+                          }
+                        ]
+                      ],
+                      "factory" : {
+                        "identifier" : "com.apple.rc.af.CoreAssetFactories.PrimitiveShapeAssetFactory",
+                        "version" : "1.0"
+                      },
+                      "runtimeAttributes" : [
+                        [
+                          "RuntimeIdentifier",
+                          {
+                            "typeName" : "UUID",
+                            "value" : "E3D9D758-D83A-4096-A32B-2E51D3C91E7A"
+                          }
+                        ],
+                        [
+                          "entityName",
+                          {
+                            "typeName" : "String",
+                            "value" : "Barcode"
+                          }
+                        ]
+                      ]
+                    },
+                    "transform" : {
+                      "matrix" : [
+                        0.24169814586639404,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0.24169814586639404,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0.24169814586639404,
+                        0,
+                        0,
+                        0.012084906920790672,
+                        0,
+                        1
+                      ]
+                    }
+                  },
+                  "Shape" : null
+                },
+                "factory" : null,
+                "runtimeAttributes" : [
+                  [
+                    "isAccessibilityEnabled",
+                    {
+                      "typeName" : "Bool",
+                      "value" : false
+                    }
+                  ]
+                ]
+              },
+              "physicsMode" : "grid",
+              "title" : "BarcodeScene",
+              "viewTransform" : {
+                "cameraTransform" : [
+                  0.79439395666122437,
+                  1.4901161193847656e-08,
+                  0.60740280151367188,
+                  0,
+                  0.32848241925239563,
+                  0.84115231037139893,
+                  -0.4296068549156189,
+                  0,
+                  -0.5109182596206665,
+                  0.54079824686050415,
+                  0.66820633411407471,
+                  0,
+                  -0.3633250892162323,
+                  0.4544064998626709,
+                  0.47555446624755859,
+                  1
+                ],
+                "sceneTransform" : [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            }
+          ],
+          "__version" : 5
+        }
+      ],
+      "tags" : {
+        "__content" : [
+          {
+            "tagsStore" : {
+
+            }
+          }
+        ],
+        "__version" : 1
+      }
+    }
+  ],
+  "__version" : 1
+}
