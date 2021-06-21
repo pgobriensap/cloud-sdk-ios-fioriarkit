@@ -16,7 +16,7 @@ internal struct ARAnnotationContentView<Card: View, Marker: View, CardItem>: Vie
     
     @Binding internal var barcodes: [BarcodeModel]
     
-    @Binding internal var barcodeDiscovered: [CGRectModel]
+    @Binding internal var barcodeDiscovered: [String: BarcodeModel]
     
     /// View Builder for a custom CardView
     internal let cardLabel: (CardItem, Bool) -> Card
@@ -30,7 +30,7 @@ internal struct ARAnnotationContentView<Card: View, Marker: View, CardItem>: Vie
     internal init(_ annotations: Binding<[ScreenAnnotation<CardItem>]>,
                   currentAnnotation: Binding<ScreenAnnotation<CardItem>?>,
                   barcodes: Binding<[BarcodeModel]>,
-                  barcodeDiscovered: Binding<[CGRectModel]>,
+                  barcodeDiscovered: Binding<[String: BarcodeModel]>,
                   @ViewBuilder cardLabel: @escaping (CardItem, Bool) -> Card,
                   @ViewBuilder markerLabel: @escaping (MarkerControl.State, Image?) -> Marker)
     {
@@ -65,18 +65,19 @@ internal struct ARAnnotationContentView<Card: View, Marker: View, CardItem>: Vie
                 }
             }
             
-            ForEach(barcodeDiscovered) { rect in
-                if rect.isVisible {
+            ForEach(Array(barcodeDiscovered.values)) { model in
+                
+                if let positionExists = model.position, let sizeExists = model.size {
                     RoundedRectangle(cornerRadius: 0)
                         .fill(Color.green.opacity(0.6))
-                        .frame(width: rect.size.width, height: rect.size.height)
-                        .position(x: rect.position.x, y: rect.position.y)
+                        .frame(width: sizeExists.width, height: sizeExists.height)
+                        .position(x: positionExists.x, y: positionExists.y)
                 }
             }
             
             VStack {
                 Spacer()
-                BarcodeList(barcodes: $barcodes)
+                BarcodeList(neededBarcodes: $barcodes)
                     .frame(width: UIScreen.main.bounds.width, height: 300)
                     .cornerRadius(8)
             }

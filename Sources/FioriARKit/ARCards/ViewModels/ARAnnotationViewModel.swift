@@ -25,17 +25,18 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
     /// The position of the ARAnchor thats discovered
     @Published internal var anchorPosition: CGPoint?
     
-    @Published internal var barcodePositions: [CGRectModel] = []
+    typealias Payload = String
+    @Published internal var discoveredBarcodes: [Payload: BarcodeModel] = [:]
     
     /// When false it indicates that the Image or Object has not been discovered and the subsequent animations have finished
     /// When the Image/Object Anchor is discovered there is a 3 second delay for animations to complete until the ContentView with Cards and Markers are displayed
     @Published internal var discoveryFlowHasFinished = true
     
-    @Published internal var barcodes: [BarcodeModel] = [BarcodeModel(id: "Deodorant", payload: "0012044045893", exists: false),
-                                                        BarcodeModel(id: "O'Reilly", payload: "9781492074533", exists: false),
-                                                        BarcodeModel(id: "Thinking in SwiftUI", payload: "9798626292411", exists: false),
-                                                        BarcodeModel(id: "Dune", payload: "9780441013593", exists: false),
-                                                        BarcodeModel(id: "Listerine", payload: "0072785103207", exists: false)]
+    @Published internal var neededBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", discovered: false, symbology: .EAN13),
+                                                              BarcodeModel(id: "9781492074533", title: "O'Reilly", discovered: false, symbology: .EAN13),
+                                                              BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", discovered: false, symbology: .EAN13),
+                                                              BarcodeModel(id: "9780441013593", title: "Dune", discovered: false, symbology: .EAN13),
+                                                              BarcodeModel(id: "0072785103207", title: "Listerine", discovered: false, symbology: .EAN13)]
     
     /// The ARImageAnchor or ARPlaneAnchor that is supplied by the ARSessionDelegate upon discovery of image or object in the physical world
     /// Stores useful information such as anchor position and image/object data. In the case of image anchor it is also used to instantiate an AnchorEntity
@@ -45,10 +46,20 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         let barcodeRequest = VNDetectBarcodesRequest { request, error in
             self.processClassification(request, error)
         }
-        barcodeRequest.symbologies = [.EAN13, .QR, .EAN8]
+        barcodeRequest.revision = VNDetectBarcodesRequestRevision1
+        barcodeRequest.symbologies = [.QR, .EAN13]
         
         return barcodeRequest
     }
+    
+    var queue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "Image processing"
+        queue.qualityOfService = .userInteractive
+        return queue
+    }()
+    
+    private var imageSize: CGSize = .zero
     
     private var frameCount: Int = 0
     
@@ -118,60 +129,42 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         DispatchQueue.main.async {
             guard let results = request.results else { return }
             
-            let req = results.compactMap { ($0 as? VNBarcodeObservation)?.payloadStringValue }
-            for (index, position) in self.barcodePositions.enumerated() {
-                if !req.contains(position.id) {
-                    self.barcodePositions[index].isVisible = false
-                }
+            if results.isEmpty {
+                self.discoveredBarcodes.removeAll()
             }
             
             for request in results {
-                if let bestResult = request as? VNBarcodeObservation, let payload = bestResult.payloadStringValue {
-                    let rect = bestResult
+                if let barcode = request as? VNBarcodeObservation, let payload = barcode.payloadStringValue {
                     let screen = UIScreen.main.bounds
+                    //
+                    //                    let transform = CGAffineTransform.identity
+                    //                        .scaledBy(x: 1, y: -1)
+                    //                        .translatedBy(x: 0, y: -screen.height)
+                    //                        .scaledBy(x: screen.width, y: screen.height)
+                    //
+                    //                    let convertedTopLeft = rect.topLeft.applying(transform)
+                    //                    let convertedTopRight = rect.topRight.applying(transform)
+                    //                    let convertedBottomLeft = rect.bottomLeft.applying(transform)
+                    //
+                    //                    let eanheight = abs(convertedTopRight.x - convertedTopLeft.x)
+                    //                    let eanWidth = abs(convertedBottomLeft.y - convertedTopLeft.y)
+                    //                    let eanCenter = CGPoint(x: rect.boundingBox.midX, y: rect.boundingBox.midY).applying(transform)
+                    //
+                    //
+                    let center = CGPoint(x: barcode.boundingBox.midX * screen.width, y: (1 - barcode.boundingBox.midY) * screen.height)
+                    let height = abs(barcode.boundingBox.maxY - barcode.boundingBox.minY) * screen.height
+                    let width = abs(barcode.boundingBox.maxX - barcode.boundingBox.minX) * screen.width
                     
-                    let transform = CGAffineTransform.identity
-                        .scaledBy(x: 1, y: -1)
-                        .translatedBy(x: 0, y: -screen.height)
-                        .scaledBy(x: screen.width, y: screen.height)
-
-                    let convertedTopLeft = rect.topLeft.applying(transform)
-                    let convertedTopRight = rect.topRight.applying(transform)
-                    let convertedBottomLeft = rect.bottomLeft.applying(transform)
-                    
-                    let width = abs(convertedTopRight.x - convertedTopLeft.x)
-                    let height = abs(convertedBottomLeft.y - convertedTopLeft.y)
-                    let center = CGPoint(x: rect.boundingBox.midX, y: rect.boundingBox.midY).applying(transform)
-                    
-                    for (index, barcode) in self.barcodePositions.enumerated() {
-                        if payload == barcode.id {
-                            self.barcodePositions[index].position = center
-                            
-                            if bestResult.symbology == .EAN13 {
-                                self.barcodePositions[index].size = CGSize(width: width, height: width)
-                            } else {
-                                self.barcodePositions[index].size = CGSize(width: height, height: height)
-                            }
-                            
-                            self.barcodePositions[index].isVisible = true
-                        }
+                    for (index, needed) in self.neededBarcodes.enumerated() where payload == needed.id {
+                        self.neededBarcodes[index].discovered = true
                     }
                     
-                    let blah = self.barcodePositions.map(\.id)
-                    
-                    if !blah.contains(payload) {
-                        self.barcodePositions.append(CGRectModel(id: payload, position: center, size: CGSize(width: width, height: height), isVisible: true))
-                    }
-                    
-                    //                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    //                    self.barcodePosition = nil
-                    //                }
-                    
-                    for (index, barcode) in self.barcodes.enumerated() {
-                        if barcode.payload == payload {
-                            self.barcodes[index].exists = true
-                        }
-                    }
+                    self.discoveredBarcodes[payload] = BarcodeModel(id: payload,
+                                                                    title: payload,
+                                                                    discovered: true,
+                                                                    position: center,
+                                                                    size: barcode.symbology == .QR ? CGSize(width: height, height: height) : CGSize(width: width, height: width * 0.66),
+                                                                    symbology: barcode.symbology)
                 }
             }
         }
@@ -206,12 +199,34 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         //        }
         // Perform the classification request on a background thread.
         // let affineTransform = frame.displayTransform(for: .portrait, viewportSize: UIScreen.main.bounds.size)
-        
         self.frameCount += 1
-        guard self.frameCount.isMultiple(of: 15) else { return }
+        if self.queue.operationCount > 0 { return }
+        guard self.frameCount.isMultiple(of: 10) else { return }
+        
+        guard let interfaceOrientation = arManager.arView?.window?.windowScene?.interfaceOrientation else { return }
+        
+        self.imageSize = frame.capturedImage.size
+        let ciImage = CIImage(cvPixelBuffer: frame.capturedImage)
+        guard let viewPort = arManager.arView?.bounds else { return }
+        
+        let normalizeTransform = CGAffineTransform(scaleX: 1.0 / self.imageSize.width, y: 1.0 / self.imageSize.height)
+        let flipTransform = interfaceOrientation.isPortrait ? CGAffineTransform(scaleX: -1, y: -1).translatedBy(x: -1, y: -1) : .identity
+        let displayTransform = frame.displayTransform(for: interfaceOrientation, viewportSize: viewPort.size)
+        
+        let toViewPortTransform = CGAffineTransform(scaleX: viewPort.size.width, y: viewPort.size.height)
+        
+        let transformedImage = ciImage
+            .transformed(by: normalizeTransform
+                .concatenating(flipTransform)
+                .concatenating(displayTransform)
+                .concatenating(toViewPortTransform)
+            )
+            .cropped(to: viewPort)
+        
+        // print("buffer: ", self.imageSize, "Screen: ", UIScreen.main.bounds)
         
         DispatchQueue.global(qos: .userInitiated).async {
-            let handler = VNImageRequestHandler(cvPixelBuffer: frame.capturedImage, orientation: .right, options: [:])
+            let handler = VNImageRequestHandler(ciImage: transformedImage)
             
             do {
                 try handler.perform([self.detectBarcodeRequest])
@@ -232,11 +247,4 @@ extension CVPixelBuffer {
         let height = CGFloat(CVPixelBufferGetHeight(self))
         return CGSize(width: width, height: height)
     }
-}
-
-struct CGRectModel: Identifiable {
-    var id: String
-    var position: CGPoint
-    var size: CGSize
-    var isVisible: Bool
 }

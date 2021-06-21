@@ -6,24 +6,37 @@
 //
 
 import SwiftUI
+import Vision
 
 struct BarcodeList: View {
-    @Binding var barcodes: [BarcodeModel]
+    @Binding var neededBarcodes: [BarcodeModel]
     
     var body: some View {
         List {
-            ForEach(barcodes) { barcode in
+            ForEach(neededBarcodes) { barcode in
                 
-                BarcodeRowView(title: barcode.id, exists: barcode.exists)
+                BarcodeRowView(title: barcode.title, exists: barcode.discovered)
             }
         }
     }
 }
 
 struct BarcodeModel: Identifiable {
+    public init(id: String, title: String, discovered: Bool, position: CGPoint? = nil, size: CGSize? = nil, symbology: VNBarcodeSymbology?) {
+        self.id = id
+        self.title = title
+        self.discovered = discovered
+        self.position = position
+        self.size = size
+        self.symbology = symbology
+    }
+    
     var id: String
-    var payload: String
-    var exists: Bool
+    var title: String
+    var discovered: Bool
+    var position: CGPoint?
+    var size: CGSize?
+    var symbology: VNBarcodeSymbology?
 }
 
 struct BarcodeRowView: View {

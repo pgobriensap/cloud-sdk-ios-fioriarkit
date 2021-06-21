@@ -83,8 +83,8 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
             if arModel.discoveryFlowHasFinished {
                 ARAnnotationContentView($arModel.annotations,
                                         currentAnnotation: $arModel.currentAnnotation,
-                                        barcodes: $arModel.barcodes,
-                                        barcodeDiscovered: $arModel.barcodePositions,
+                                        barcodes: $arModel.neededBarcodes,
+                                        barcodeDiscovered: $arModel.discoveredBarcodes,
                                         cardLabel: cardLabel,
                                         markerLabel: markerLabel)
                 
