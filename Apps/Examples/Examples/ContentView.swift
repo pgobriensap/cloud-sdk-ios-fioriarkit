@@ -31,6 +31,10 @@ struct ContentView: View {
                     Text("Reality File Example")
                 }
                 
+                NavigationLink(destination: BarcodeListView()) {
+                    Text("Barcode Scanning")
+                }
+                
                 NavigationLink(destination: DownloadsView()) {
                     Text("Download Image Anchors")
                 }
