@@ -10,16 +10,14 @@ import Combine
 import UIKit
 import Vision
 
-open class BarcodeScanningViewModel: NSObject, ObservableObject {
+open class CaptureSessionVC: UIViewController {
     // Link to View
-    @Published public var neededBarcodes: [BarcodeModel] = []
-    @Published public var discoveredBarcodes: [Payload: BarcodeModel] = [:]
-    var arManager: ARManagement = ARManager()
+    // public var neededBarcodes: [BarcodeModel] = []
+    // public var discoveredBarcodes: [Payload: BarcodeModel] = [:]
     
     // Capture Session
     var bufferSize: CGSize = .zero
     var rootLayer: CALayer!
-    var previewView = UIView()
     var captureSession = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer!
     private let videoDataOutput = AVCaptureVideoDataOutput()
@@ -34,14 +32,16 @@ open class BarcodeScanningViewModel: NSObject, ObservableObject {
 //        }
     //   }
     
-    override public init() {
-        super.init()
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.setupAVCapture()
+        self.startCaptureSession()
     }
     
     func setupAVCapture() {
         var deviceInput: AVCaptureDeviceInput!
         
-        let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [], mediaType: .video, position: .back).devices.first
+        let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualWideCamera], mediaType: .video, position: .back).devices.first
         
         do {
             deviceInput = try AVCaptureDeviceInput(device: videoDevice!)
@@ -83,7 +83,7 @@ open class BarcodeScanningViewModel: NSObject, ObservableObject {
         self.captureSession.commitConfiguration()
         self.previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
         self.previewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        self.rootLayer = self.previewView.layer
+        self.rootLayer = self.view.layer
         self.previewLayer.frame = self.rootLayer.bounds
         self.rootLayer.addSublayer(self.previewLayer)
     }
@@ -99,7 +99,7 @@ open class BarcodeScanningViewModel: NSObject, ObservableObject {
     }
 }
 
-extension BarcodeScanningViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
+extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return

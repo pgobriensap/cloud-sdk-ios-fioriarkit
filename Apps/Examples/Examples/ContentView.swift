@@ -11,24 +11,8 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             List {
-                NavigationLink(destination: ARCardsDefaultContentView()) {
-                    Text("ARCards - Default")
-                }
-                
-                NavigationLink(destination: ARCardsViewBuilderContentView()) {
-                    Text("ARCards - ViewBuilder")
-                }
-                
-                NavigationLink(destination: CarEngineExampleContentView()) {
-                    Text("2016 Engine Example")
-                }
-                
-                NavigationLink(destination: ARCardsJSONLoadingContentView()) {
-                    Text("JSON Decoding Example")
-                }
-                
-                NavigationLink(destination: ARCardsRealityFileLoadingContentView()) {
-                    Text("Reality File Example")
+                NavigationLink(destination: ARCardListView()) {
+                    Text("ARCards")
                 }
                 
                 NavigationLink(destination: BarcodeListView()) {
@@ -38,7 +22,6 @@ struct ContentView: View {
                 NavigationLink(destination: DownloadsView()) {
                     Text("Download Image Anchors")
                 }
-                
             }.navigationBarTitle("Examples")
         }.navigationViewStyle(StackNavigationViewStyle())
     }

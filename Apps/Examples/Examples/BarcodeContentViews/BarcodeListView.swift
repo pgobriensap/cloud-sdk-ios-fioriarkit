@@ -5,25 +5,19 @@
 //  Created by O'Brien, Patrick on 5/5/21.
 //
 
+import FioriARKit
 import SwiftUI
 
 struct BarcodeListView: View {
     var body: some View {
-        NavigationView {
-            List {
-                NavigationLink(destination: ARCardsDefaultContentView()) {
-                    Text("Fast Sequence")
-                }
-                
-                NavigationLink(destination: ARCardsDefaultContentView()) {
-                    Text("Batch Scanning")
-                }
-                
-                NavigationLink(destination: ARCardsDefaultContentView()) {
-                    Text("Split View")
-                }
-                
-            }.navigationBarTitle("Examples")
-        }.navigationViewStyle(StackNavigationViewStyle())
+        List {
+            NavigationLink(destination: SequenceScanningView()) {
+                Text("Fast/Batch Scanning")
+            }
+            
+            NavigationLink(destination: ARCardsDefaultContentView()) {
+                Text("Split View")
+            }
+        }.navigationBarTitle("Examples")
     }
 }

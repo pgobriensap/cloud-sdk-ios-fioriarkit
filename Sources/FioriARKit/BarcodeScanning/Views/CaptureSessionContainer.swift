@@ -8,12 +8,11 @@
 import Foundation
 import SwiftUI
 
-internal struct CaptureSessionContainer: UIViewRepresentable {
-    var captureStorage: BarcodeScanningViewModel
-    
-    func makeUIView(context: Context) -> UIView {
-        UIView()
+internal struct CaptureSessionContainer: UIViewControllerRepresentable {
+    typealias UIViewControllerType = CaptureSessionVC
+    func makeUIViewController(context: Context) -> CaptureSessionVC {
+        CaptureSessionVC()
     }
-
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    
+    func updateUIViewController(_ uiViewController: CaptureSessionVC, context: Context) {}
 }
