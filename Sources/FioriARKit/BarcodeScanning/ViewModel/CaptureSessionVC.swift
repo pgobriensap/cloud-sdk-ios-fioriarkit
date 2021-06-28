@@ -11,15 +11,13 @@ import SwiftUI
 import UIKit
 import Vision
 
-public protocol BarcodeDelegate {
-    func updateBarcode(payload: String)
+public protocol BarcodeOutputDelegate: AnyObject {
+    func payloadOutput(payload: String)
 }
 
 open class CaptureSessionVC: UIViewController {
-    // Link to View
-    public var neededBarcodes: [BarcodeModel] = []
-    public var discoveredBarcodes: [Payload: BarcodeModel] = [:]
-    public var barcodeDelegate: BarcodeDelegate?
+    // Link to UIViewControllerRepresentable
+    public weak var barcodeDelegate: BarcodeOutputDelegate?
     
     // Capture Session
     var bufferSize: CGSize = .zero
@@ -29,6 +27,7 @@ open class CaptureSessionVC: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer!
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
+    public var discoveredBarcodes: Set<String> = []
     
     // Vision Requests
     var detectBarcodeRequest: VNDetectBarcodesRequest {
@@ -43,6 +42,8 @@ open class CaptureSessionVC: UIViewController {
         
         return barcodeRequest
     }
+
+    var currentFrame = 1
     
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -55,7 +56,7 @@ open class CaptureSessionVC: UIViewController {
     func setupAVCapture() {
         var deviceInput: AVCaptureDeviceInput!
         
-        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualWideCamera], mediaType: .video, position: .back).devices.first else { return }
+        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
         
         do {
             deviceInput = try AVCaptureDeviceInput(device: videoDevice)
@@ -120,21 +121,26 @@ open class CaptureSessionVC: UIViewController {
         if results.isEmpty {
             self.discoveredBarcodes.removeAll()
         }
+        
         for result in results {
             if let barcode = result as? VNBarcodeObservation, let payload = barcode.payloadStringValue {
-                let ean13: Bool = barcode.symbology == .EAN13
-                if ean13 {
-                    self.discoveredBarcodes[payload] = BarcodeModel(id: payload)
-                }
-                
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 
-                let shapeLayer = self.createRoundedRectLayerWithBounds(ean13 ? CGRect(origin: objectBounds.origin,
-                                                                                      size: CGSize(width: objectBounds.height * 0.66,
-                                                                                                   height: objectBounds.height)) :
-                        objectBounds)
-                self.detectionOverlay.addSublayer(shapeLayer)
-                self.barcodeDelegate?.updateBarcode(payload: payload)
+                var barcodeLayer: CALayer?
+                if barcode.symbology == .QR {
+                    barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+                } else {
+                    if !self.discoveredBarcodes.contains(payload) {
+                        let ean13BoundingBox = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
+                        barcodeLayer = self.createRoundedRectLayerWithBounds(ean13BoundingBox)
+                        self.discoveredBarcodes.insert(payload)
+                    }
+                }
+                
+                if let barcodeLayer = barcodeLayer {
+                    self.detectionOverlay.addSublayer(barcodeLayer)
+                    self.barcodeDelegate?.payloadOutput(payload: payload)
+                }
             }
         }
         self.updateLayerGeometry()
@@ -157,7 +163,7 @@ open class CaptureSessionVC: UIViewController {
         shapeLayer.bounds = bounds
         shapeLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
         shapeLayer.name = "Found Object"
-        shapeLayer.backgroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [1.0, 1.0, 0.2, 0.4])
+        shapeLayer.backgroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [0.6, 0.98, 0.6, 0.7])
         shapeLayer.cornerRadius = 7
         return shapeLayer
     }
@@ -187,6 +193,9 @@ open class CaptureSessionVC: UIViewController {
 
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        self.currentFrame += 1
+        guard self.currentFrame.isMultiple(of: 5) else { return }
+        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
@@ -198,6 +207,10 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
             try imageRequestHandler.perform([self.detectBarcodeRequest])
         } catch {
             print(error)
+        }
+        
+        if self.currentFrame > 10000 {
+            self.currentFrame = 1
         }
     }
     
@@ -220,9 +233,3 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
         return exifOrientation
     }
 }
-
-public struct BarcodeModel: Identifiable {
-    public var id: String
-}
-
-public typealias Payload = String

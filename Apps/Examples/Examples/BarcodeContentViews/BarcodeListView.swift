@@ -15,8 +15,8 @@ struct BarcodeListView: View {
                 Text("Fast/Batch Scanning")
             }
             
-            NavigationLink(destination: ARCardsDefaultContentView()) {
-                Text("Split View")
+            NavigationLink(destination: ScanningSplitView()) {
+                Text("Needed Barcodes")
             }
         }.navigationBarTitle("Examples")
     }
