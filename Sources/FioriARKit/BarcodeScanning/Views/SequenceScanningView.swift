@@ -8,22 +8,25 @@
 import SwiftUI
 
 public struct SequenceScanningView: View {
+    @State var currentPayload = ""
+    
     public init() {}
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            CaptureSessionContainer()
+            CaptureSessionContainer(discoveredBarcode: $currentPayload)
                 .edgesIgnoringSafeArea(.all)
-            // .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-            BarcodeInfoView()
+            BarcodeInfoView(currentPayload: $currentPayload)
         }
     }
 }
 
 struct BarcodeInfoView: View {
+    @Binding var currentPayload: String
+    
     var body: some View {
         HStack {
-            Text("Payload: 39393920")
+            Text("Payload: \(currentPayload)")
                 .font(.system(size: 24))
                 .foregroundColor(.black)
                 .padding(.leading, 10)
