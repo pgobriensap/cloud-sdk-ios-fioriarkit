@@ -42,8 +42,10 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
     /// Stores useful information such as anchor position and image/object data. In the case of image anchor it is also used to instantiate an AnchorEntity
     private var arkitAnchor: ARAnchor?
     
+    // Request to run
     var detectBarcodeRequest: VNDetectBarcodesRequest {
         let barcodeRequest = VNDetectBarcodesRequest { request, error in
+            // Closure to run on each request
             self.processClassification(request, error)
         }
         barcodeRequest.revision = VNDetectBarcodesRequestRevision1
@@ -51,13 +53,6 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         
         return barcodeRequest
     }
-    
-    var queue: OperationQueue = {
-        let queue = OperationQueue()
-        queue.name = "Image processing"
-        queue.qualityOfService = .userInteractive
-        return queue
-    }()
     
     private var imageSize: CGSize = .zero
     
@@ -136,21 +131,8 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
             for request in results {
                 if let barcode = request as? VNBarcodeObservation, let payload = barcode.payloadStringValue {
                     let screen = UIScreen.main.bounds
-                    //
-                    //                    let transform = CGAffineTransform.identity
-                    //                        .scaledBy(x: 1, y: -1)
-                    //                        .translatedBy(x: 0, y: -screen.height)
-                    //                        .scaledBy(x: screen.width, y: screen.height)
-                    //
-                    //                    let convertedTopLeft = rect.topLeft.applying(transform)
-                    //                    let convertedTopRight = rect.topRight.applying(transform)
-                    //                    let convertedBottomLeft = rect.bottomLeft.applying(transform)
-                    //
-                    //                    let eanheight = abs(convertedTopRight.x - convertedTopLeft.x)
-                    //                    let eanWidth = abs(convertedBottomLeft.y - convertedTopLeft.y)
-                    //                    let eanCenter = CGPoint(x: rect.boundingBox.midX, y: rect.boundingBox.midY).applying(transform)
-                    //
-                    //
+                    
+                    // transform from normalized
                     let center = CGPoint(x: barcode.boundingBox.midX * screen.width, y: (1 - barcode.boundingBox.midY) * screen.height)
                     let height = abs(barcode.boundingBox.maxY - barcode.boundingBox.minY) * screen.height
                     let width = abs(barcode.boundingBox.maxX - barcode.boundingBox.minX) * screen.width
@@ -192,15 +174,8 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
     
     /// Provides a newly captured camera image and accompanying AR information to the delegate.
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        //        guard !self.discoveryFlowHasFinished else { return }
-        //
-        //        if let arkitAnchor = arkitAnchor {
-        //            self.anchorPosition = self.getAnchorPosition(for: arkitAnchor)
-        //        }
-        // Perform the classification request on a background thread.
-        // let affineTransform = frame.displayTransform(for: .portrait, viewportSize: UIScreen.main.bounds.size)
+        // run model every 10 updates
         self.frameCount += 1
-        if self.queue.operationCount > 0 { return }
         guard self.frameCount.isMultiple(of: 10) else { return }
         
         guard let interfaceOrientation = arManager.arView?.window?.windowScene?.interfaceOrientation else { return }
@@ -209,10 +184,16 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         let ciImage = CIImage(cvPixelBuffer: frame.capturedImage)
         guard let viewPort = arManager.arView?.bounds else { return }
         
+        // Normalize Coordinate Space
         let normalizeTransform = CGAffineTransform(scaleX: 1.0 / self.imageSize.width, y: 1.0 / self.imageSize.height)
+        
+        // Flip Y axis
         let flipTransform = interfaceOrientation.isPortrait ? CGAffineTransform(scaleX: -1, y: -1).translatedBy(x: -1, y: -1) : .identity
+        
+        // Transform from ARView frame
         let displayTransform = frame.displayTransform(for: interfaceOrientation, viewportSize: viewPort.size)
         
+        // transform from viewport size
         let toViewPortTransform = CGAffineTransform(scaleX: viewPort.size.width, y: viewPort.size.height)
         
         let transformedImage = ciImage
@@ -223,8 +204,7 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
             )
             .cropped(to: viewPort)
         
-        // print("buffer: ", self.imageSize, "Screen: ", UIScreen.main.bounds)
-        
+        // Perform each request on every 10 frames
         DispatchQueue.global(qos: .userInitiated).async {
             let handler = VNImageRequestHandler(ciImage: transformedImage)
             
