@@ -4,17 +4,17 @@
 //
 //  Created by O'Brien, Patrick on 6/28/21.
 //
-
+ 
 import SwiftUI
 import Vision
 
 public struct ScanningSplitView: View {
     @State var currentPayload: String = ""
-    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .EAN13)]
-//                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .EAN13),
-//                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .EAN13),
-//                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .EAN13),
-//                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .EAN13)]
+    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .ean13)]
+//                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .ean13),
+//                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .ean13),
+//                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .ean13),
+//                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .ean13)]
     
     @State var foundPayloads: Set<String> = []
     @State var addBarcodeSheetIsPresented = false
@@ -129,7 +129,7 @@ struct AddBarcodeSheet: View {
                 .textFieldStyle(PlainTextFieldStyle())
             
             Button(action: {
-                neededBarcodes.append(BarcodeModel(id: payload, title: title, isDiscovered: false, symbology: .EAN13))
+                neededBarcodes.append(BarcodeModel(id: payload, title: title, isDiscovered: false, symbology: .ean13)) // TODO: Have user select symbology
                 title = ""
                 payload = ""
                 added = true
@@ -150,11 +150,4 @@ struct AddBarcodeSheet: View {
         }
         .padding(20)
     }
-}
-
-struct BarcodeModel: Identifiable {
-    var id: String
-    var title: String
-    var isDiscovered: Bool
-    var symbology: VNBarcodeSymbology
 }

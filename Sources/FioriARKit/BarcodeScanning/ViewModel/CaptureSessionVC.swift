@@ -43,7 +43,7 @@ open class CaptureSessionVC: UIViewController {
             }
         }
         barcodeRequest.revision = VNDetectBarcodesRequestRevision1
-        barcodeRequest.symbologies = [.QR, .EAN13]
+        barcodeRequest.symbologies = [.qr, .ean13]
         
         return barcodeRequest
     }
@@ -166,7 +166,7 @@ open class CaptureSessionVC: UIViewController {
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 
                 var barcodeLayer: CALayer?
-                if barcode.symbology == .QR {
+                if barcode.symbology == .qr {
                     barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
                 } else {
                     // if !self.discoveredBarcodes.contains(payload) {
