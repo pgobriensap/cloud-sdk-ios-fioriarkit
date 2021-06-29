@@ -10,13 +10,14 @@ import Vision
 
 public struct ScanningSplitView: View {
     @State var currentPayload: String = ""
-    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .EAN13),
-                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .EAN13),
-                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .EAN13),
-                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .EAN13),
-                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .EAN13)]
+    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .EAN13)]
+//                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .EAN13),
+//                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .EAN13),
+//                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .EAN13),
+//                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .EAN13)]
     
     @State var foundPayloads: Set<String> = []
+    @State var addBarcodeSheetIsPresented = false
     
     public init() {}
     
@@ -25,6 +26,14 @@ public struct ScanningSplitView: View {
             CaptureSessionContainer(currentPayload: $currentPayload, discoveredPayloads: $foundPayloads, neededBarcodes: $needBarcodes)
                 .edgesIgnoringSafeArea(.all)
             BottomDrawer(neededBarcodes: $needBarcodes)
+        }
+        .toolbar {
+            Button("Add Barcode") {
+                addBarcodeSheetIsPresented.toggle()
+            }
+        }
+        .sheet(isPresented: $addBarcodeSheetIsPresented) {
+            AddBarcodeSheet(neededBarcodes: $needBarcodes, isPresented: $addBarcodeSheetIsPresented)
         }
         .edgesIgnoringSafeArea(.bottom)
     }
@@ -56,13 +65,17 @@ struct BottomDrawer: View {
             List {
                 ForEach(neededBarcodes) { neededBarcode in
                     BarcodeRow(barcodeModel: neededBarcode)
-                }
+                }.onDelete(perform: deleteRow)
             }
         }
         .frame(width: UIScreen.main.bounds.width, height: 300)
         .background(Color.black)
         .cornerRadius(8)
         .offset(y: isOffsetHidden ? 200 : 0)
+    }
+    
+    func deleteRow(at offsets: IndexSet) {
+        self.neededBarcodes.remove(atOffsets: offsets)
     }
 }
 
@@ -85,6 +98,57 @@ struct BarcodeRow: View {
         }
         .padding()
         .frame(height: 60)
+    }
+}
+
+struct AddBarcodeSheet: View {
+    @Binding var neededBarcodes: [BarcodeModel]
+    @Binding var isPresented: Bool
+    
+    @State var payload = ""
+    @State var title = ""
+    
+    @State var added: Bool = false
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Text("Add Barcode")
+                    .font(.system(size: 22))
+                    .foregroundColor(.white)
+                Spacer()
+                Button("Dismiss") {
+                    isPresented.toggle()
+                }.font(.system(size: 17))
+            }
+            
+            TextField("Payload...", text: $payload)
+                .textFieldStyle(PlainTextFieldStyle())
+                .padding(.bottom, 10)
+            TextField("Title...", text: $title)
+                .textFieldStyle(PlainTextFieldStyle())
+            
+            Button(action: {
+                neededBarcodes.append(BarcodeModel(id: payload, title: title, isDiscovered: false, symbology: .EAN13))
+                title = ""
+                payload = ""
+                added = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    added = false
+                }
+            }, label: {
+                Text(added ? "Success!" : "Add")
+                    .frame(width: 200, height: 40)
+                    .foregroundColor(.white)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.preferredColor(.tintColor, background: .lightConstant))
+                    )
+            })
+            
+            Spacer()
+        }
+        .padding(20)
     }
 }
 
