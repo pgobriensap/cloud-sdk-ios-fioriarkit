@@ -59,7 +59,7 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func setupAVCapture() {
-        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInUltraWideCamera], mediaType: .video, position: .back).devices.first else { return }
+        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
         
         do {
             self.deviceInput = try AVCaptureDeviceInput(device: videoDevice)
@@ -91,6 +91,9 @@ open class CaptureSessionVC: UIViewController {
         captureConnection?.isEnabled = true
         do {
             try videoDevice.lockForConfiguration()
+            if videoDevice.isFocusModeSupported(.continuousAutoFocus) {
+                videoDevice.focusMode = .continuousAutoFocus
+            }
             let dimensions = CMVideoFormatDescriptionGetDimensions(videoDevice.activeFormat.formatDescription)
             self.bufferSize.width = CGFloat(dimensions.width)
             self.bufferSize.height = CGFloat(dimensions.height)
