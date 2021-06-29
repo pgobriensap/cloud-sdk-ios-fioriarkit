@@ -28,6 +28,11 @@ open class CaptureSessionVC: UIViewController {
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
     public var discoveredBarcodes: Set<String> = []
+    var deviceInput: AVCaptureDeviceInput!
+    
+    let minimumZoom: CGFloat = 1.0
+    let maximumZoom: CGFloat = 3.0
+    var lastZoomFactor: CGFloat = 1.0
     
     // Vision Requests
     var detectBarcodeRequest: VNDetectBarcodesRequest {
@@ -54,29 +59,27 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func setupAVCapture() {
-        var deviceInput: AVCaptureDeviceInput!
-        
-        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
+        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInUltraWideCamera], mediaType: .video, position: .back).devices.first else { return }
         
         do {
-            deviceInput = try AVCaptureDeviceInput(device: videoDevice)
+            self.deviceInput = try AVCaptureDeviceInput(device: videoDevice)
         } catch {
             print("Unable to create Capture Device: \(error)")
         }
         
         self.captureSession.beginConfiguration()
         
-        guard self.captureSession.canAddInput(deviceInput) else {
+        guard self.captureSession.canAddInput(self.deviceInput) else {
             print("Could not add video device input to the session")
             self.captureSession.commitConfiguration()
             return
         }
         
-        self.captureSession.addInput(deviceInput)
+        self.captureSession.addInput(self.deviceInput)
         if self.captureSession.canAddOutput(self.videoDataOutput) {
             self.captureSession.addOutput(self.videoDataOutput)
             self.videoDataOutput.alwaysDiscardsLateVideoFrames = true
-            self.videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
+            self.videoDataOutput.videoSettings = nil // = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
             self.videoDataOutput.setSampleBufferDelegate(self, queue: self.videoDataOutputQueue)
         } else {
             print("Could not add video data output to the session")
@@ -98,9 +101,12 @@ open class CaptureSessionVC: UIViewController {
         self.captureSession.commitConfiguration()
         self.previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
         self.previewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        self.rootLayer = self.view.layer
+        self.rootLayer = view.layer
         self.previewLayer.frame = self.rootLayer.bounds
         self.rootLayer.addSublayer(self.previewLayer)
+        
+        let pinchRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(self.pinch(_:)))
+        self.view.addGestureRecognizer(pinchRecognizer)
     }
     
     func startCaptureSession() {
@@ -111,6 +117,36 @@ open class CaptureSessionVC: UIViewController {
     func teardownAVCapture() {
         self.previewLayer.removeFromSuperlayer()
         self.previewLayer = nil
+    }
+    
+    @objc func pinch(_ pinch: UIPinchGestureRecognizer) {
+        let device = self.deviceInput.device
+
+        // Return zoom value between the minimum and maximum zoom values
+        func minMaxZoom(_ factor: CGFloat) -> CGFloat {
+            min(min(max(factor, self.minimumZoom), self.maximumZoom), device.activeFormat.videoMaxZoomFactor)
+        }
+
+        func update(scale factor: CGFloat) {
+            do {
+                try device.lockForConfiguration()
+                defer { device.unlockForConfiguration() }
+                device.videoZoomFactor = factor
+            } catch {
+                print("\(error.localizedDescription)")
+            }
+        }
+
+        let newScaleFactor = minMaxZoom(pinch.scale * self.lastZoomFactor)
+
+        switch pinch.state {
+        case .began: fallthrough
+        case .changed: update(scale: newScaleFactor)
+        case .ended:
+            self.lastZoomFactor = minMaxZoom(newScaleFactor)
+            update(scale: self.lastZoomFactor)
+        default: break
+        }
     }
     
     func processClassification(_ results: [Any]) {
@@ -193,8 +229,8 @@ open class CaptureSessionVC: UIViewController {
 
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        self.currentFrame += 1
-        guard self.currentFrame.isMultiple(of: 5) else { return }
+//        currentFrame += 1
+//        guard currentFrame.isMultiple(of: 5) else { return }
         
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
