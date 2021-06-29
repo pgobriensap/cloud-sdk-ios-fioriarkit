@@ -169,11 +169,11 @@ open class CaptureSessionVC: UIViewController {
                 if barcode.symbology == .QR {
                     barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
                 } else {
-                    if !self.discoveredBarcodes.contains(payload) {
-                        let ean13BoundingBox = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
-                        barcodeLayer = self.createRoundedRectLayerWithBounds(ean13BoundingBox)
-                        self.discoveredBarcodes.insert(payload)
-                    }
+                    // if !self.discoveredBarcodes.contains(payload) {
+                    let ean13BoundingBox = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
+                    barcodeLayer = self.createRoundedRectLayerWithBounds(ean13BoundingBox)
+                    // self.discoveredBarcodes.insert(payload)
+                    // }
                 }
                 
                 if let barcodeLayer = barcodeLayer {
