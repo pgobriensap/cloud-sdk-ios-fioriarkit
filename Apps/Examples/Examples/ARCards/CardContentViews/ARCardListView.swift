@@ -30,6 +30,10 @@ struct ARCardListView: View {
                 Text("Reality File Example")
             }
             
+            NavigationLink(destination: ARCardsUSDZFileLoadingContentView()) {
+                Text("Usdz File Example")
+            }
+            
             NavigationLink(destination: EditingModeContentView()) {
                 Text("Editing Mode Example")
             }
