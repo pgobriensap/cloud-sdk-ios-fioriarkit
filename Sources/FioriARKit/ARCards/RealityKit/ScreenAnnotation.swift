@@ -41,6 +41,7 @@ public struct ScreenAnnotation<CardItem: CardItemModel>: Identifiable, Equatable
     /// Sets the internal within the MarkerAnchor
     public func setInternalEntity(with entity: Entity) {
         self.marker.internalEnitity = entity
+        // (marker.internalEnitity as? HasCollision)?.generateCollisionShapes(recursive: true)
     }
     
     internal mutating func setMarkerVisibility(to isVisible: Bool) {
@@ -50,6 +51,14 @@ public struct ScreenAnnotation<CardItem: CardItemModel>: Identifiable, Equatable
     internal mutating func setCardVisibility(to isVisible: Bool) {
         self.isCardVisible = isVisible
     }
+    
+    internal mutating func setInternalEntityVisibility(to isVisible: Bool) {
+        isVisible ? self.marker.showInternalEntity() : self.marker.hideInternalEntity()
+    }
+    
+//    internal func generateEntityCollisionShapes(recursive: Bool = true) {
+//        marker.internalEnitity.generateCollisionShapes(recursive: recursive)
+//    }
     
     public static func == (lhs: ScreenAnnotation<CardItem>, rhs: ScreenAnnotation<CardItem>) -> Bool {
         lhs.id == rhs.id

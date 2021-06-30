@@ -29,6 +29,10 @@ struct ARCardListView: View {
             NavigationLink(destination: ARCardsRealityFileLoadingContentView()) {
                 Text("Reality File Example")
             }
+            
+            NavigationLink(destination: EditingModeContentView()) {
+                Text("Editing Mode Example")
+            }
         }.navigationBarTitle("ARCards")
     }
 }

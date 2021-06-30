@@ -37,6 +37,15 @@ public struct DecodableCardItem: CardItemModel {
     public var actionText_: String?
     public var icon_: Image?
     
+    internal init(id: String, title_: String, descriptionText_: String? = nil, detailImage_: Image? = nil, actionText_: String? = nil, icon_: Image? = nil) {
+        self.id = id
+        self.title_ = title_
+        self.descriptionText_ = descriptionText_
+        self.detailImage_ = detailImage_
+        self.actionText_ = actionText_
+        self.icon_ = icon_
+    }
+    
     private enum CodingKeys: String, CodingKey {
         case id
         case title_

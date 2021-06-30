@@ -95,6 +95,8 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
         .navigationBarTitle("")
         .navigationBarHidden(true)
         .overlay(DismissButton(onDismiss: onDismiss).opacity(Double(0.8)), alignment: .topLeading)
+        .overlay(EditModeButton(toggleEditMode: arModel.activateEditMode).opacity(Double(0.8)), alignment: .topTrailing)
+        .overlay(AddAnnotationButton(addAnnotation: arModel.addAnnotation).opacity(Double(0.8)), alignment: .topTrailing)
     }
     
     private func onDismiss() {
@@ -122,6 +124,51 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
                     )
             })
                 .padding([.leading, .top], 16)
+        }
+    }
+    
+    private struct EditModeButton: View {
+        let toggleEditMode: (() -> Void)?
+        
+        var body: some View {
+            Button(action: {
+                toggleEditMode?()
+            }, label: {
+                Text("Edit")
+                    .fontWeight(.light)
+                    .font(.system(.title2))
+                    .font(.system(size: 16))
+                    .frame(width: 77, height: 33)
+                    .foregroundColor(Color.preferredColor(.primaryLabel, background: .darkConstant))
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.black.opacity(0.6))
+                    )
+            })
+                .padding([.trailing, .top], 16)
+        }
+    }
+    
+    private struct AddAnnotationButton: View {
+        let addAnnotation: (() -> Void)?
+        
+        var body: some View {
+            Button(action: {
+                addAnnotation?()
+            }, label: {
+                Text(Image(systemName: "plus.circle"))
+                    .fontWeight(.light)
+                    .font(.system(.title2))
+                    .font(.system(size: 19))
+                    .frame(width: 44, height: 44)
+                    .foregroundColor(Color.preferredColor(.primaryLabel, background: .darkConstant))
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.black.opacity(0.6))
+                    )
+            })
+                .padding(.trailing, 16)
+                .padding(.top, 60)
         }
     }
 }

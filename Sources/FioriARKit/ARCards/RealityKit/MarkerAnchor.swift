@@ -19,7 +19,7 @@ import UIKit
 internal class MarkerAnchor: Entity, HasAnchoring {
     public var internalEnitity: Entity! {
         didSet {
-            self.hideInternalEntity()
+            // self.hideInternalEntity()
         }
     }
 
@@ -32,5 +32,10 @@ internal class MarkerAnchor: Entity, HasAnchoring {
     internal func hideInternalEntity() {
         let invisibleMaterial = OcclusionMaterial()
         self.internalEnitity.components[ModelComponent.self] = ModelComponent(mesh: MeshResource.generateBox(size: 0.1), materials: [invisibleMaterial])
+    }
+    
+    internal func showInternalEntity() {
+        let redMaterial = SimpleMaterial(color: .red, isMetallic: false)
+        self.internalEnitity.components[ModelComponent.self] = ModelComponent(mesh: MeshResource.generateSphere(radius: 0.05), materials: [redMaterial])
     }
 }

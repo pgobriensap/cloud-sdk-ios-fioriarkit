@@ -31,12 +31,16 @@ public class ARManager: ARManagement {
     
     var subscription: Cancellable!
     
+    var elevation: CGPoint?
+    var selectedEntity: Entity?
+    
     public init() {
         self.arView = ARView(frame: .zero)
         self.arView?.session.run(ARWorldTrackingConfiguration())
         self.subscription = self.arView?.scene.subscribe(to: SceneEvents.Update.self) { [unowned self] in
             onSceneUpate?($0)
         }
+        self.elevationSetup()
     }
     
     /// Set the configuration for the ARView's session with options
@@ -81,5 +85,39 @@ public class ARManager: ARManagement {
         guard let ciImage = CIImage(image: uiImage) else { return nil }
         let context = CIContext(options: nil)
         return context.createCGImage(ciImage, from: ciImage.extent)
+    }
+}
+
+extension ARManager {
+    func elevationSetup() {
+        let pr = UIPanGestureRecognizer(target: self, action: #selector(self.handleObjectElevation))
+        pr.minimumNumberOfTouches = 2
+        self.arView?.addGestureRecognizer(pr)
+    }
+    
+    @objc func handleObjectElevation(_ gesture: UIPanGestureRecognizer) {
+        let location = gesture.location(in: self.arView!)
+        if gesture.state == .failed || gesture.state == .cancelled {
+            return
+        }
+
+        if gesture.state == .began {
+            if let rayResult = arView!.ray(through: location) {
+                let results = self.arView!.scene.raycast(origin: rayResult.origin, direction: rayResult.direction)
+                if let firstResult = results.first {
+                    self.selectedEntity = firstResult.entity
+                    self.elevation = location
+                }
+            }
+        } else if let _ = selectedEntity {
+            let deltaY = Float(location.y - self.elevation!.y) / 700
+            self.selectedEntity!.position.y -= deltaY
+            self.elevation = location
+
+            if gesture.state == .ended {
+                self.selectedEntity = nil
+                self.elevation = nil
+            }
+        }
     }
 }

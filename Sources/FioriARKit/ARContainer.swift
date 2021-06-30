@@ -96,6 +96,7 @@ extension SceneLoadable {
             }
             let annotation = ScreenAnnotation(card: cardItem)
             annotation.setInternalEntity(with: internalEntity)
+            manager.arView?.installGestures(for: internalEntity as! HasCollision)
             annotations.append(annotation)
         }
 

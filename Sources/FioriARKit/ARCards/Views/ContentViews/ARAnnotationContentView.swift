@@ -37,15 +37,16 @@ internal struct ARAnnotationContentView<Card: View, Marker: View, CardItem>: Vie
     
     internal var body: some View {
         ZStack(alignment: .bottom) {
+            Color.clear
             ForEach(annotations) { annotation in
-        
+
                 if let focusedAnnotation = currentAnnotation {
                     if focusedAnnotation.id == annotation.id, displayLine, focusedAnnotation.isMarkerVisible {
                         LineView(displayLine: $displayLine,
                                  startPoint: CGPoint(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.maxY - 150),
                                  endPoint: annotation.screenPosition)
                     }
-                    
+
                     MarkerContainer(state: focusedAnnotation.id == annotation.id ? .selected : .normal,
                                     icon: annotation.icon,
                                     screenPosition: annotation.screenPosition,

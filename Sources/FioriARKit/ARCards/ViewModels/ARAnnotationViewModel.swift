@@ -7,6 +7,7 @@
 
 import ARKit
 import Combine
+import FioriIntegrationCards
 import RealityKit
 import SwiftUI
 
@@ -32,6 +33,10 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
     /// The ARImageAnchor or ARPlaneAnchor that is supplied by the ARSessionDelegate upon discovery of image or object in the physical world
     /// Stores useful information such as anchor position and image/object data. In the case of image anchor it is also used to instantiate an AnchorEntity
     private var arkitAnchor: ARAnchor?
+    
+    private var isEditingMode: Bool = true
+    
+    var names = ["Hello", "World", "SAP", "Blah"]
     
     override public init() {
         super.init()
@@ -93,6 +98,43 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         let anchorTranslation = SIMD3<Float>(x: arAnchor.transform.columns.3.x, y: arAnchor.transform.columns.3.y, z: arAnchor.transform.columns.3.z)
         guard let objectCenter = arManager.arView?.project(anchorTranslation) else { return nil }
         return objectCenter
+    }
+    
+    internal func activateEditMode() {
+        self.isEditingMode.toggle()
+        
+        for (index, _) in self.annotations.enumerated() {
+            self.annotations[index].setMarkerVisibility(to: !self.isEditingMode
+            )
+            self.annotations[index].setInternalEntityVisibility(to: self.isEditingMode)
+        }
+    }
+    
+    internal func addAnnotation() {
+        let rando = self.names.last
+        self.names = self.names.dropLast()
+        guard let rando = rando else { return }
+        
+        let cardItem = DecodableCardItem(id: rando,
+                                         title_: rando,
+                                         descriptionText_: rando,
+                                         detailImage_: nil,
+                                         actionText_: "Tap",
+                                         icon_: nil) as! CardItem
+        
+        var annotation = ScreenAnnotation(card: cardItem)
+        let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.05),
+                                materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        model.generateCollisionShapes(recursive: false)
+        let scene = self.arManager.arView?.scene.findEntity(named: "Scene")
+        scene!.children.first!.addChild(model)
+        annotation.setInternalEntity(with: model)
+        annotation.setMarkerVisibility(to: true)
+        self.arManager.arView?.installGestures(for: model)
+        self.annotations.append(annotation)
+        if self.annotations.count == 1 {
+            self.currentAnnotation = self.annotations.first
+        }
     }
 
     // MARK: ARSession Delegate

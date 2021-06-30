@@ -24,6 +24,8 @@
 		2C6DDE5E2644CCD60093AA6B /* FioriARKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2C6DDE5D2644CCD60093AA6B /* FioriARKit */; };
 		2C9371282644D3C3001932D1 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9371272644D3C3001932D1 /* DownloadsView.swift */; };
 		2CC2A028268BFB8F0091C42B /* ARCardListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC2A027268BFB8F0091C42B /* ARCardListView.swift */; };
+		2CC2A02A268D19410091C42B /* EditingModeContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC2A029268D19410091C42B /* EditingModeContentView.swift */; };
+		2CC2A02C268D1AA50091C42B /* EmptyRC.rcproject in Sources */ = {isa = PBXBuildFile; fileRef = 2CC2A02B268D1AA50091C42B /* EmptyRC.rcproject */; };
 		2CCF965926824D9D00566523 /* ExampleRC.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 2CCF965826824D9D00566523 /* ExampleRC.usdz */; };
 		2CCF965B2682535000566523 /* ARCardsUSDZFileLoadingContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CCF965A2682535000566523 /* ARCardsUSDZFileLoadingContentView.swift */; };
 		2CDD909826437D630076150D /* ExampleCardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CDD909726437D630076150D /* ExampleCardItem.swift */; };
@@ -51,6 +53,8 @@
 		2C554AE3268118E0007784D6 /* FileManager+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Extensions.swift"; sourceTree = "<group>"; };
 		2C9371272644D3C3001932D1 /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		2CC2A027268BFB8F0091C42B /* ARCardListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARCardListView.swift; sourceTree = "<group>"; };
+		2CC2A029268D19410091C42B /* EditingModeContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingModeContentView.swift; sourceTree = "<group>"; };
+		2CC2A02B268D1AA50091C42B /* EmptyRC.rcproject */ = {isa = PBXFileReference; lastKnownFileType = file.rcproject; path = EmptyRC.rcproject; sourceTree = "<group>"; };
 		2CCF965826824D9D00566523 /* ExampleRC.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = ExampleRC.usdz; sourceTree = "<group>"; };
 		2CCF965A2682535000566523 /* ARCardsUSDZFileLoadingContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARCardsUSDZFileLoadingContentView.swift; sourceTree = "<group>"; };
 		2CDD909726437D630076150D /* ExampleCardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleCardItem.swift; sourceTree = "<group>"; };
@@ -97,6 +101,7 @@
 				2C554AE12681189B007784D6 /* ARCardsRealityFileLoadingContentView.swift */,
 				2CCF965A2682535000566523 /* ARCardsUSDZFileLoadingContentView.swift */,
 				2CC2A027268BFB8F0091C42B /* ARCardListView.swift */,
+				2CC2A029268D19410091C42B /* EditingModeContentView.swift */,
 			);
 			path = CardContentViews;
 			sourceTree = "<group>";
@@ -181,6 +186,7 @@
 		2CDD909F264382D40076150D /* RealityComposer */ = {
 			isa = PBXGroup;
 			children = (
+				2CC2A02B268D1AA50091C42B /* EmptyRC.rcproject */,
 				2CCF965826824D9D00566523 /* ExampleRC.usdz */,
 				2C3C675F2674006B00B2B243 /* CarEngineRC1.rcproject */,
 				2CDD90A1264383540076150D /* ExampleRC.rcproject */,
@@ -264,6 +270,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2C3C67602674006B00B2B243 /* CarEngineRC1.rcproject in Sources */,
+				2CC2A02A268D19410091C42B /* EditingModeContentView.swift in Sources */,
 				2C554AE4268118E0007784D6 /* FileManager+Extensions.swift in Sources */,
 				2C4C71A22643697F00B462A9 /* ContentView.swift in Sources */,
 				2CC2A028268BFB8F0091C42B /* ARCardListView.swift in Sources */,
@@ -275,6 +282,7 @@
 				2C4C71B526436ADC00B462A9 /* ARCardsViewBuilderContentView.swift in Sources */,
 				2C4C71A02643697F00B462A9 /* ExamplesApp.swift in Sources */,
 				2CDD90A2264383540076150D /* ExampleRC.rcproject in Sources */,
+				2CC2A02C268D1AA50091C42B /* EmptyRC.rcproject in Sources */,
 				2C9371282644D3C3001932D1 /* DownloadsView.swift in Sources */,
 				2C48248F264DC40600E230E6 /* StringIdentifyingCardItem.swift in Sources */,
 				2CDD909826437D630076150D /* ExampleCardItem.swift in Sources */,

@@ -77,6 +77,13 @@
                             "typeName" : "String",
                             "value" : "BrakeFluid"
                           }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
+                          }
                         ]
                       ]
                     },
@@ -155,6 +162,13 @@
                           {
                             "typeName" : "String",
                             "value" : "Fusebox"
+                          }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
                           }
                         ]
                       ]
@@ -235,6 +249,13 @@
                             "typeName" : "String",
                             "value" : "Coolant"
                           }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
+                          }
                         ]
                       ]
                     },
@@ -295,6 +316,13 @@
                           {
                             "typeName" : "String",
                             "value" : "Oilstick"
+                          }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
                           }
                         ]
                       ]
@@ -381,6 +409,13 @@
                             "typeName" : "String",
                             "value" : "Battery"
                           }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
+                          }
                         ]
                       ]
                     },
@@ -441,6 +476,13 @@
                           {
                             "typeName" : "String",
                             "value" : "WasherFluid"
+                          }
+                        ],
+                        [
+                          "rigidBody-enabled",
+                          {
+                            "typeName" : "Bool",
+                            "value" : true
                           }
                         ]
                       ]
