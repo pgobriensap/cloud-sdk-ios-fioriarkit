@@ -36,8 +36,6 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
     
     private var isEditingMode: Bool = true
     
-    var names = ["Hello", "World", "SAP", "Blah"]
-    
     override public init() {
         super.init()
         self.arManager.arView?.session.delegate = self
@@ -104,23 +102,18 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         self.isEditingMode.toggle()
         
         for (index, _) in self.annotations.enumerated() {
-            self.annotations[index].setMarkerVisibility(to: !self.isEditingMode
-            )
+            self.annotations[index].setMarkerVisibility(to: !self.isEditingMode)
             self.annotations[index].setInternalEntityVisibility(to: self.isEditingMode)
         }
     }
     
-    internal func addAnnotation() {
-        let rando = self.names.last
-        self.names = self.names.dropLast()
-        guard let rando = rando else { return }
-        
-        let cardItem = DecodableCardItem(id: rando,
-                                         title_: rando,
-                                         descriptionText_: rando,
+    internal func addAnnotation(title: String, descriptionText: String, actionText: String, icon: String) {
+        let cardItem = DecodableCardItem(id: String(annotations.count),
+                                         title_: title,
+                                         descriptionText_: descriptionText.isEmpty ? nil : descriptionText,
                                          detailImage_: nil,
-                                         actionText_: "Tap",
-                                         icon_: nil) as! CardItem
+                                         actionText_: actionText.isEmpty ? nil : actionText,
+                                         icon_: icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
         
         var annotation = ScreenAnnotation(card: cardItem)
         let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.05),

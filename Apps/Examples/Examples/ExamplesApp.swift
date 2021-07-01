@@ -39,7 +39,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         FileManager.default.saveDataToDirectory(saveExampleRealityURL, saveData: exampleRCRealityData)
         FileManager.default.saveDataToDirectory(saveExampleUsdzURL, saveData: exampleRCUsdzData)
         
-        // try! FileManager.default.moveItem(at: URL(string: "file://" + saveExampleUsdzURL.path)!, to: URL(string: "file://" + usdzAsZip.path)!)
+        if !FileManager.default.fileExists(atPath: usdzAsZip.path) {
+            do {
+                try FileManager.default.moveItem(at: URL(string: "file://" + saveExampleUsdzURL.path)!, to: URL(string: "file://" + usdzAsZip.path)!)
+            } catch {
+                print(error)
+            }
+        }
         
         return true
     }

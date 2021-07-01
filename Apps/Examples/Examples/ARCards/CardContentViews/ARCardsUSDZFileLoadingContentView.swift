@@ -38,7 +38,7 @@ struct ARCardsUSDZFileLoadingContentView: View {
             let anchorImage = UIImage(contentsOfFile: imagePath.path)
             
             let jsonData = try Data(contentsOf: jsonUrl)
-            let strategy = try UsdzFileStrategy(jsonData: jsonData, anchorImage: anchorImage, physicalWidth: 0.1, usdzFilePath: absoluteUsdzPath)
+            let strategy = try UsdzFileStrategy(jsonData: jsonData, physicalWidth: 0.1, usdzFilePath: absoluteUsdzPath)
             arModel.load(loadingStrategy: strategy)
         } catch {
             print(error)

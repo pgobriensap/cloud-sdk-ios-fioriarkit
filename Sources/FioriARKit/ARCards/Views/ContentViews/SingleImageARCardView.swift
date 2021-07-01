@@ -66,6 +66,8 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
     /// ViewBuilder for a custom MarkerView
     public let markerLabel: (MarkerControl.State, Image?) -> Marker
     
+    @State private var addAnnotationIsPresented = false
+    
     public init(arModel: ARAnnotationViewModel<CardItem>,
                 @ViewBuilder scanLabel: @escaping (Binding<CGPoint?>) -> Scan,
                 @ViewBuilder cardLabel: @escaping (CardItem, Bool) -> Card,
@@ -95,10 +97,27 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
         .navigationBarTitle("")
         .navigationBarHidden(true)
         .overlay(DismissButton(onDismiss: onDismiss).opacity(Double(0.8)), alignment: .topLeading)
-        .overlay(EditModeButton(toggleEditMode: arModel.activateEditMode).opacity(Double(0.8)), alignment: .topTrailing)
-        .overlay(AddAnnotationButton(addAnnotation: arModel.addAnnotation).opacity(Double(0.8)), alignment: .topTrailing)
+        .overlay(showEditButton(), alignment: .topTrailing)
+        .overlay(showAddButton(), alignment: .topTrailing)
+        .sheet(isPresented: $addAnnotationIsPresented) {
+            AddAnnotationView(isPresented: $addAnnotationIsPresented, addAnnotation: arModel.addAnnotation)
+        }
     }
     
+    @ViewBuilder
+    func showEditButton() -> some View {
+        if self.arModel.discoveryFlowHasFinished {
+            EditModeButton(toggleEditMode: self.arModel.activateEditMode).opacity(Double(0.8))
+        }
+    }
+    
+    @ViewBuilder
+    func showAddButton() -> some View {
+        if self.arModel.discoveryFlowHasFinished {
+            AddAnnotationButton(addAnnotation: { addAnnotationIsPresented.toggle() }).opacity(Double(0.8))
+        }
+    }
+
     private func onDismiss() {
         self.arModel.cleanUpSession()
     }
