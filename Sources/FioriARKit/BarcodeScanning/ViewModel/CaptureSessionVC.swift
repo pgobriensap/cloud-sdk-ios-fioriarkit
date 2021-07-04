@@ -27,7 +27,7 @@ open class CaptureSessionVC: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer!
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
-    public var discoveredBarcodes: Set<String> = []
+    private var discoveredBarcodes: [String: Extent] = [:]
     var deviceInput: AVCaptureDeviceInput!
     
     let minimumZoom: CGFloat = 1.0
@@ -39,15 +39,18 @@ open class CaptureSessionVC: UIViewController {
         let barcodeRequest = VNDetectBarcodesRequest { request, _ in
             DispatchQueue.main.async {
                 guard let results = request.results else { return }
-                self.processClassification(results)
+                let barcodeObservations = results.compactMap { $0 as? VNBarcodeObservation }
+                self.processAnimatedClassification(barcodeObservations)
             }
         }
+        
         barcodeRequest.revision = VNDetectBarcodesRequestRevision1
-        barcodeRequest.symbologies = [.qr, .ean13]
+        barcodeRequest.symbologies = [.ean13, .qr]
         
         return barcodeRequest
     }
 
+    var framesLeft = 20
     var currentFrame = 1
     
     override open func viewWillAppear(_ animated: Bool) {
@@ -68,6 +71,7 @@ open class CaptureSessionVC: UIViewController {
         }
         
         self.captureSession.beginConfiguration()
+        self.captureSession.sessionPreset = .photo
         
         guard self.captureSession.canAddInput(self.deviceInput) else {
             print("Could not add video device input to the session")
@@ -79,7 +83,7 @@ open class CaptureSessionVC: UIViewController {
         if self.captureSession.canAddOutput(self.videoDataOutput) {
             self.captureSession.addOutput(self.videoDataOutput)
             self.videoDataOutput.alwaysDiscardsLateVideoFrames = true
-            self.videoDataOutput.videoSettings = nil // = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
+            self.videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
             self.videoDataOutput.setSampleBufferDelegate(self, queue: self.videoDataOutputQueue)
         } else {
             print("Could not add video data output to the session")
@@ -152,7 +156,7 @@ open class CaptureSessionVC: UIViewController {
         }
     }
     
-    func processClassification(_ results: [Any]) {
+    func processClassification(_ results: [VNBarcodeObservation]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         self.detectionOverlay.sublayers = nil
@@ -161,17 +165,17 @@ open class CaptureSessionVC: UIViewController {
             self.discoveredBarcodes.removeAll()
         }
         
-        for result in results {
-            if let barcode = result as? VNBarcodeObservation, let payload = barcode.payloadStringValue {
+        for barcode in results {
+            if let payload = barcode.payloadStringValue {
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 
                 var barcodeLayer: CALayer?
                 if barcode.symbology == .qr {
-                    barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+                    barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds, payload)
                 } else {
                     // if !self.discoveredBarcodes.contains(payload) {
                     let ean13BoundingBox = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
-                    barcodeLayer = self.createRoundedRectLayerWithBounds(ean13BoundingBox)
+                    barcodeLayer = self.createRoundedRectLayerWithBounds(ean13BoundingBox, payload)
                     // self.discoveredBarcodes.insert(payload)
                     // }
                 }
@@ -186,6 +190,105 @@ open class CaptureSessionVC: UIViewController {
         CATransaction.commit()
     }
     
+    func processAnimatedClassification(_ results: [VNBarcodeObservation]) {
+        CATransaction.begin()
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+        
+        // Clean up logic in the future
+        if results.isEmpty {
+            self.framesLeft -= 1
+        } else {
+            self.framesLeft = 20
+        }
+    
+        if self.framesLeft < 0 {
+            self.detectionOverlay.sublayers = nil
+            self.discoveredBarcodes.removeAll()
+            self.framesLeft = 20
+        }
+
+        for barcode in results {
+            if let payload = barcode.payloadStringValue {
+                guard barcode.symbology == .ean13 || barcode.symbology == .qr else { return }
+                
+                let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
+                var bb: CGRect = .zero
+                
+                if barcode.symbology == .ean13 {
+                    bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
+                }
+                if barcode.symbology == .qr {
+                    bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height, height: objectBounds.height))
+                }
+                
+                if let lastExtent = self.discoveredBarcodes[payload] {
+                    self.detectionOverlay.sublayers?.forEach {
+                        if let layerName = $0.name {
+                            if layerName == payload {
+                                let translationAnimation = createTranslationAnimation(from: $0.presentation()?.position ?? lastExtent.position, to: bb.center)
+                                let widthAnimation = createXAnimation(currentWidth: $0.presentation()?.bounds.width ?? lastExtent.size.width, newWidth: bb.width)
+                                let heightAnimation = createYAnimation(currentWidth: $0.presentation()?.bounds.height ?? lastExtent.size.height, newWidth: bb.width)
+                                
+                                $0.removeAllAnimations()
+                                $0.bounds = bb
+                                $0.position = bb.center
+
+                                let animationGroup = CAAnimationGroup()
+                                animationGroup.animations = [translationAnimation, widthAnimation, heightAnimation]
+                                animationGroup.duration = 0.25
+                                $0.add(animationGroup, forKey: "AllAnimations")
+                                self.discoveredBarcodes[payload] = Extent(position: bb.center, size: CGSize(width: bb.width, height: bb.height))
+                            }
+                        }
+                    }
+                } else {
+                    let barcodeLayer = self.createRoundedRectLayerWithBounds(bb, payload)
+                    self.detectionOverlay.addSublayer(barcodeLayer)
+                    self.discoveredBarcodes[payload] = Extent(position: objectBounds.center, size: CGSize(width: bb.width, height: bb.height))
+                }
+                
+                self.barcodeDelegate?.payloadOutput(payload: payload)
+            }
+        }
+        self.updateLayerGeometry()
+        CATransaction.commit()
+    }
+    
+    func createTranslationAnimation(from startPosition: CGPoint, to endPosition: CGPoint) -> CABasicAnimation {
+        let translationAnim = CABasicAnimation(keyPath: "position")
+        translationAnim.fromValue = startPosition
+        translationAnim.toValue = endPosition
+        translationAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
+        translationAnim.isRemovedOnCompletion = true
+        translationAnim.fillMode = .forwards
+        translationAnim.beginTime = 0
+        return translationAnim
+    }
+    
+    func createXAnimation(currentWidth: CGFloat, newWidth: CGFloat) -> CABasicAnimation {
+        let scale = currentWidth / newWidth
+        let translationAnim = CABasicAnimation(keyPath: "transform.scale.x")
+        translationAnim.fromValue = 1
+        translationAnim.toValue = scale
+        translationAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
+        translationAnim.isRemovedOnCompletion = true
+        translationAnim.fillMode = .forwards
+        translationAnim.beginTime = 0
+        return translationAnim
+    }
+    
+    func createYAnimation(currentWidth: CGFloat, newWidth: CGFloat) -> CABasicAnimation {
+        let scale = currentWidth / newWidth
+        let translationAnim = CABasicAnimation(keyPath: "transform.scale.y")
+        translationAnim.fromValue = 1
+        translationAnim.toValue = scale
+        translationAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
+        translationAnim.isRemovedOnCompletion = true
+        translationAnim.fillMode = .forwards
+        translationAnim.beginTime = 0
+        return translationAnim
+    }
+    
     func setupLayers() {
         self.detectionOverlay = CALayer() // container layer that has all the renderings of the observations
         self.detectionOverlay.name = "DetectionOverlay"
@@ -197,11 +300,11 @@ open class CaptureSessionVC: UIViewController {
         self.rootLayer.addSublayer(self.detectionOverlay)
     }
     
-    func createRoundedRectLayerWithBounds(_ bounds: CGRect) -> CALayer {
+    func createRoundedRectLayerWithBounds(_ bounds: CGRect, _ layerName: String) -> CALayer {
         let shapeLayer = CALayer()
         shapeLayer.bounds = bounds
         shapeLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
-        shapeLayer.name = "Found Object"
+        shapeLayer.name = layerName
         shapeLayer.backgroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [0.6, 0.98, 0.6, 0.7])
         shapeLayer.cornerRadius = 7
         return shapeLayer
@@ -270,5 +373,16 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
             exifOrientation = .up
         }
         return exifOrientation
+    }
+}
+
+struct Extent {
+    var position: CGPoint
+    var size: CGSize
+}
+
+extension CGRect {
+    var center: CGPoint {
+        CGPoint(x: self.midX, y: self.midY)
     }
 }
