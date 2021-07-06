@@ -9,14 +9,16 @@ import SwiftUI
 import Vision
 
 public struct ScanningSplitView: View {
-    @State var currentPayload: String = ""
-    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .ean13)]
-//                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .ean13),
-//                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .ean13),
-//                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .ean13),
-//                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .ean13)]
+    @State var currentPayload: BarcodeModel = .empty
+    @State var needBarcodes: [BarcodeModel] = [BarcodeModel(id: "0012044045893", title: "Deodorant", isDiscovered: false, symbology: .ean13),
+                                               BarcodeModel(id: "9781492074533", title: "O'Reilly", isDiscovered: false, symbology: .ean13),
+                                               BarcodeModel(id: "9798626292411", title: "Thinking in SwiftUI", isDiscovered: false, symbology: .ean13),
+                                               BarcodeModel(id: "9780441013593", title: "Dune", isDiscovered: false, symbology: .ean13),
+                                               BarcodeModel(id: "0072785103207", title: "Listerine", isDiscovered: false, symbology: .ean13),
+                                               BarcodeModel(id: "B08SM59QQ7", title: "Auaua Case", isDiscovered: false, symbology: .code128),
+                                               BarcodeModel(id: "http://www.auauastore.com", title: "Auana Case", isDiscovered: false, symbology: .qr)]
     
-    @State var foundPayloads: Set<String> = []
+    @State var foundPayloads: Set<BarcodeModel> = []
     @State var addBarcodeSheetIsPresented = false
     
     public init() {}

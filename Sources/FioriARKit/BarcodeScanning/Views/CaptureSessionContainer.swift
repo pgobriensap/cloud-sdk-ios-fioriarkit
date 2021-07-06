@@ -11,8 +11,8 @@ import SwiftUI
 import Vision
 
 internal struct CaptureSessionContainer: UIViewControllerRepresentable {
-    @Binding var currentPayload: String
-    @Binding var discoveredPayloads: Set<String>
+    @Binding var currentPayload: BarcodeModel
+    @Binding var discoveredPayloads: Set<BarcodeModel>
     @Binding var neededBarcodes: [BarcodeModel]
     
     func makeCoordinator() -> Coordinator {
@@ -34,12 +34,13 @@ internal struct CaptureSessionContainer: UIViewControllerRepresentable {
             self.parent = csVC
         }
         
-        func payloadOutput(payload: String) {
-            self.parent.currentPayload = payload
-            self.parent.discoveredPayloads.insert(payload)
+        func payloadOutput(payload: String, symbology: VNBarcodeSymbology) {
+            let barcode = BarcodeModel(id: payload, symbology: symbology)
+            self.parent.currentPayload = barcode
+            self.parent.discoveredPayloads.insert(barcode)
 
             for (index, needed) in self.parent.neededBarcodes.enumerated() {
-                if self.parent.discoveredPayloads.contains(needed.id) {
+                if self.parent.discoveredPayloads.contains(where: { $0.id == needed.id }) {
                     self.parent.neededBarcodes[index].isDiscovered = true
                 }
             }

@@ -12,7 +12,7 @@ import UIKit
 import Vision
 
 public protocol BarcodeOutputDelegate: AnyObject {
-    func payloadOutput(payload: String)
+    func payloadOutput(payload: String, symbology: VNBarcodeSymbology)
 }
 
 open class CaptureSessionVC: UIViewController {
@@ -45,12 +45,12 @@ open class CaptureSessionVC: UIViewController {
         }
         
         barcodeRequest.revision = VNDetectBarcodesRequestRevision1
-        barcodeRequest.symbologies = [.ean13, .qr]
+        barcodeRequest.symbologies = [.ean13, .qr, .code128]
         
         return barcodeRequest
     }
 
-    var framesLeft = 20
+    var framesLeft = 10
     var currentFrame = 1
     
     override open func viewWillAppear(_ animated: Bool) {
@@ -182,7 +182,7 @@ open class CaptureSessionVC: UIViewController {
                 
                 if let barcodeLayer = barcodeLayer {
                     self.detectionOverlay.addSublayer(barcodeLayer)
-                    self.barcodeDelegate?.payloadOutput(payload: payload)
+                    self.barcodeDelegate?.payloadOutput(payload: payload, symbology: barcode.symbology)
                 }
             }
         }
@@ -198,25 +198,26 @@ open class CaptureSessionVC: UIViewController {
         if results.isEmpty {
             self.framesLeft -= 1
         } else {
-            self.framesLeft = 20
+            self.framesLeft = 10
         }
     
         if self.framesLeft < 0 {
             self.detectionOverlay.sublayers = nil
             self.discoveredBarcodes.removeAll()
-            self.framesLeft = 20
+            self.framesLeft = 10
         }
-
+        
         for barcode in results {
             if let payload = barcode.payloadStringValue {
-                guard barcode.symbology == .ean13 || barcode.symbology == .qr else { return }
+                guard barcode.symbology == .ean13 || barcode.symbology == .qr || barcode.symbology == .code128 else { return }
                 
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 var bb: CGRect = .zero
                 
-                if barcode.symbology == .ean13 {
-                    bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.66, height: objectBounds.height))
+                if barcode.symbology == .ean13 || barcode.symbology == .code128 {
+                    bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
                 }
+                
                 if barcode.symbology == .qr {
                     bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height, height: objectBounds.height))
                 }
@@ -226,15 +227,15 @@ open class CaptureSessionVC: UIViewController {
                         if let layerName = $0.name {
                             if layerName == payload {
                                 let translationAnimation = createTranslationAnimation(from: $0.presentation()?.position ?? lastExtent.position, to: bb.center)
-                                let widthAnimation = createXAnimation(currentWidth: $0.presentation()?.bounds.width ?? lastExtent.size.width, newWidth: bb.width)
-                                let heightAnimation = createYAnimation(currentWidth: $0.presentation()?.bounds.height ?? lastExtent.size.height, newWidth: bb.width)
+                                // let widthAnimation = createXAnimation(currentWidth: $0.presentation()?.bounds.width ?? lastExtent.size.width, newWidth: bb.width)
+                                // let heightAnimation = createYAnimation(currentWidth: $0.presentation()?.bounds.height ?? lastExtent.size.height, newWidth: bb.width)
                                 
                                 $0.removeAllAnimations()
                                 $0.bounds = bb
                                 $0.position = bb.center
 
                                 let animationGroup = CAAnimationGroup()
-                                animationGroup.animations = [translationAnimation, widthAnimation, heightAnimation]
+                                animationGroup.animations = [translationAnimation]
                                 animationGroup.duration = 0.25
                                 $0.add(animationGroup, forKey: "AllAnimations")
                                 self.discoveredBarcodes[payload] = Extent(position: bb.center, size: CGSize(width: bb.width, height: bb.height))
@@ -247,9 +248,17 @@ open class CaptureSessionVC: UIViewController {
                     self.discoveredBarcodes[payload] = Extent(position: objectBounds.center, size: CGSize(width: bb.width, height: bb.height))
                 }
                 
-                self.barcodeDelegate?.payloadOutput(payload: payload)
+                self.barcodeDelegate?.payloadOutput(payload: payload, symbology: barcode.symbology)
             }
         }
+        
+        // Clean up discovered Overlays that are not rediscovered
+//        for (payloadString, _) in discoveredBarcodes {
+//            if !results.compactMap({ $0.payloadStringValue }).contains(payloadString) {
+//                discoveredBarcodes.removeValue(forKey: payloadString)
+//            }
+//        }
+        
         self.updateLayerGeometry()
         CATransaction.commit()
     }
