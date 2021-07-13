@@ -122,7 +122,7 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
                                       icon_: icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
         
         var annotation = ScreenAnnotation(card: cardItem)
-        let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.05),
+        let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.025),
                                 materials: [SimpleMaterial(color: .red, isMetallic: false)])
         model.generateCollisionShapes(recursive: false)
         let scene = self.arManager.arView?.scene.findEntity(named: "Scene")

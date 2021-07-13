@@ -26,10 +26,14 @@ public struct ArrangedStrategy<CardItem: CardItemModel>: AnnotationLoadingStrate
 
         manager.sceneRoot = Entity()
         manager.addReferenceImage(for: self.anchorImage, with: self.physicalWidth)
+        let arrangement: [Float] = [-0.10, 0, 0.10]
 
+        var count = 0
         for cardItem in self.cardContents {
             let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.025), materials: [SimpleMaterial(color: .red, isMetallic: false)])
             internalEntity.generateCollisionShapes(recursive: true)
+            internalEntity.position.x = arrangement[count]
+            count += 1
             manager.sceneRoot!.addChild(internalEntity)
             let annotation = ScreenAnnotation(card: cardItem)
             annotation.setInternalEntity(with: internalEntity)
