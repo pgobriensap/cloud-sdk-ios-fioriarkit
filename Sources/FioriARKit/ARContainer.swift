@@ -24,7 +24,7 @@ internal struct ARContainer: UIViewRepresentable {
 public protocol ARManagement: AnyObject {
     var arView: ARView? { get set }
     var onSceneUpate: ((SceneEvents.Update) -> Void)? { get set }
-    var sceneRoot: HasAnchoring? { get set }
+    var sceneRoot: Entity? { get set }
 
     func configureSession(with configuration: ARConfiguration, options: ARSession.RunOptions)
     func setAutomaticConfiguration()

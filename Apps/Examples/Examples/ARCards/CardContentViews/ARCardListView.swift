@@ -34,7 +34,7 @@ struct ARCardListView: View {
                 Text("Usdz File Example")
             }
             
-            NavigationLink(destination: EditingModeContentView()) {
+            NavigationLink(destination: AnnotationAuthoringView()) {
                 Text("Editing Mode Example")
             }
         }.navigationBarTitle("ARCards")

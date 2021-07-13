@@ -107,13 +107,19 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
         }
     }
     
+    internal func printVectors() {
+        for (_, annotation) in self.annotations.enumerated() {
+            print(annotation.id, annotation.marker.internalEnitity.position)
+        }
+    }
+    
     internal func addAnnotation(title: String, descriptionText: String, actionText: String, icon: String) {
-        let cardItem = DecodableCardItem(id: String(annotations.count),
-                                         title_: title,
-                                         descriptionText_: descriptionText.isEmpty ? nil : descriptionText,
-                                         detailImage_: nil,
-                                         actionText_: actionText.isEmpty ? nil : actionText,
-                                         icon_: icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
+        let cardItem = SimpleCardItem(id: String(annotations.count),
+                                      title_: title,
+                                      descriptionText_: descriptionText.isEmpty ? nil : descriptionText,
+                                      detailImage_: nil,
+                                      actionText_: actionText.isEmpty ? nil : actionText,
+                                      icon_: icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
         
         var annotation = ScreenAnnotation(card: cardItem)
         let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.05),

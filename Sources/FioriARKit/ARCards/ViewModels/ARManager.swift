@@ -22,7 +22,7 @@ import SwiftUI
 /// ```
 public class ARManager: ARManagement {
     public var arView: ARView?
-    public var sceneRoot: HasAnchoring?
+    public var sceneRoot: Entity?
     public var onSceneUpate: ((SceneEvents.Update) -> Void)?
     
     var worldMap: ARWorldMap?
@@ -36,6 +36,7 @@ public class ARManager: ARManagement {
     
     public init() {
         self.arView = ARView(frame: .zero)
+        self.arView?.debugOptions = [.showAnchorGeometry, .showAnchorOrigins]
         self.arView?.session.run(ARWorldTrackingConfiguration())
         self.subscription = self.arView?.scene.subscribe(to: SceneEvents.Update.self) { [unowned self] in
             onSceneUpate?($0)

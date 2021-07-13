@@ -99,6 +99,7 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
         .overlay(DismissButton(onDismiss: onDismiss).opacity(Double(0.8)), alignment: .topLeading)
         .overlay(showEditButton(), alignment: .topTrailing)
         .overlay(showAddButton(), alignment: .topTrailing)
+        .overlay(printVectors(), alignment: .topTrailing)
         .sheet(isPresented: $addAnnotationIsPresented) {
             AddAnnotationView(isPresented: $addAnnotationIsPresented, addAnnotation: arModel.addAnnotation)
         }
@@ -115,6 +116,13 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
     func showAddButton() -> some View {
         if self.arModel.discoveryFlowHasFinished {
             AddAnnotationButton(addAnnotation: { addAnnotationIsPresented.toggle() }).opacity(Double(0.8))
+        }
+    }
+    
+    @ViewBuilder
+    func printVectors() -> some View {
+        if self.arModel.discoveryFlowHasFinished {
+            PrintVectorsButton(printVectors: { self.arModel.printVectors() }).opacity(Double(0.8))
         }
     }
 
@@ -165,6 +173,29 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
                     )
             })
                 .padding([.trailing, .top], 16)
+        }
+    }
+    
+    private struct PrintVectorsButton: View {
+        let printVectors: (() -> Void)?
+        
+        var body: some View {
+            Button(action: {
+                printVectors?()
+            }, label: {
+                Text(Image(systemName: "printer"))
+                    .fontWeight(.light)
+                    .font(.system(.title2))
+                    .font(.system(size: 16))
+                    .frame(width: 77, height: 33)
+                    .foregroundColor(Color.preferredColor(.primaryLabel, background: .darkConstant))
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.black.opacity(0.6))
+                    )
+            })
+                .padding([.trailing, .top], 16)
+                .padding(.top, 100)
         }
     }
     
