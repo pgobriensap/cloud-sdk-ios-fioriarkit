@@ -18,6 +18,7 @@ public protocol BarcodeOutputDelegate: AnyObject {
 open class CaptureSessionVC: UIViewController {
     // Link to UIViewControllerRepresentable
     public weak var barcodeDelegate: BarcodeOutputDelegate?
+    var videoDevice: AVCaptureDevice!
     
     // Capture Session
     var bufferSize: CGSize = .zero
@@ -62,16 +63,10 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func setupAVCapture() {
-        guard let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
-        
-        do {
-            self.deviceInput = try AVCaptureDeviceInput(device: videoDevice)
-        } catch {
-            print("Unable to create Capture Device: \(error)")
-        }
+        self.videoDevice = AVCaptureDevice.default(for: .video)! // .DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
+        self.deviceInput = try! AVCaptureDeviceInput(device: self.videoDevice)
         
         self.captureSession.beginConfiguration()
-        self.captureSession.sessionPreset = .photo
         
         guard self.captureSession.canAddInput(self.deviceInput) else {
             print("Could not add video device input to the session")
@@ -94,14 +89,14 @@ open class CaptureSessionVC: UIViewController {
         let captureConnection = self.videoDataOutput.connection(with: .video)
         captureConnection?.isEnabled = true
         do {
-            try videoDevice.lockForConfiguration()
-            if videoDevice.isFocusModeSupported(.continuousAutoFocus) {
-                videoDevice.focusMode = .continuousAutoFocus
+            try self.videoDevice.lockForConfiguration()
+            if self.videoDevice.isFocusModeSupported(.continuousAutoFocus) {
+                self.videoDevice.focusMode = .continuousAutoFocus
             }
             let dimensions = CMVideoFormatDescriptionGetDimensions(videoDevice.activeFormat.formatDescription)
             self.bufferSize.width = CGFloat(dimensions.width)
             self.bufferSize.height = CGFloat(dimensions.height)
-            videoDevice.unlockForConfiguration()
+            self.videoDevice.unlockForConfiguration()
         } catch {
             print(error)
         }
@@ -117,7 +112,28 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func startCaptureSession() {
-        self.captureSession.startRunning()
+        var bestFormat: AVCaptureDevice.Format?
+        
+        for format in self.videoDevice.formats {
+            if format.isHighestPhotoQualitySupported {
+                bestFormat = format
+                break
+            }
+        }
+    
+        if let bestFormat = bestFormat {
+            do {
+                try self.videoDevice.lockForConfiguration()
+                self.videoDevice.activeFormat = bestFormat
+                self.captureSession.startRunning()
+                
+                print(self.videoDevice.activeFormat)
+                print(self.captureSession.sessionPreset)
+                // videoDevice.unlockForConfiguration()
+            } catch {
+                print(error)
+            }
+        }
     }
     
     // Clean up capture setup
