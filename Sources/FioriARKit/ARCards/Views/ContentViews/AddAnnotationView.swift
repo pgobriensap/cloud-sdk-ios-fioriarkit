@@ -34,11 +34,11 @@ internal struct AddAnnotationView: View {
             TextField("Action Text...", text: $actionText)
                 .textFieldStyle(PlainTextFieldStyle())
             
-            Picker("Favorite Color", selection: $selectedIndex, content: {
-                ForEach(0 ..< availableIcons.count, content: { index in
-                    Image(systemName: availableIcons[index])
-                })
-            })
+//            Picker("Favorite Color", selection: $selectedIndex, content: {
+//                ForEach(0 ..< availableIcons.count, content: { index in
+//                    Image(systemName: availableIcons[index])
+//                })
+//            })
             
             Button(action: {
                 addAnnotation?(title, descriptionText, actionText, availableIcons[selectedIndex])

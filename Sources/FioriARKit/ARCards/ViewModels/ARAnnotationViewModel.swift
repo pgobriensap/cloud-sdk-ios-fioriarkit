@@ -119,17 +119,14 @@ open class ARAnnotationViewModel<CardItem: CardItemModel>: NSObject, ObservableO
                                       descriptionText_: descriptionText.isEmpty ? nil : descriptionText,
                                       detailImage_: nil,
                                       actionText_: actionText.isEmpty ? nil : actionText,
-                                      icon_: icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
+                                      icon_: nil) as! CardItem // icon.isEmpty ? nil : Image(systemName: icon)) as! CardItem
         
-        var annotation = ScreenAnnotation(card: cardItem)
-        let model = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.025),
-                                materials: [SimpleMaterial(color: .red, isMetallic: false)])
-        model.generateCollisionShapes(recursive: false)
-        let scene = self.arManager.arView?.scene.findEntity(named: "Scene")
-        scene!.children.first!.addChild(model)
-        annotation.setInternalEntity(with: model)
-        annotation.setMarkerVisibility(to: true)
-        self.arManager.arView?.installGestures(for: model)
+        let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.035), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        internalEntity.generateCollisionShapes(recursive: true)
+        self.arManager.sceneRoot!.addChild(internalEntity)
+        let annotation = ScreenAnnotation(card: cardItem)
+        annotation.setInternalEntity(with: internalEntity)
+        self.arManager.arView?.installGestures([.scale, .translation], for: internalEntity)
         self.annotations.append(annotation)
         if self.annotations.count == 1 {
             self.currentAnnotation = self.annotations.first

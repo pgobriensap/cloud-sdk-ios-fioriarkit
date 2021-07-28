@@ -26,21 +26,31 @@ public struct ArrangedStrategy<CardItem: CardItemModel>: AnnotationLoadingStrate
 
         manager.sceneRoot = Entity()
         manager.addReferenceImage(for: self.anchorImage, with: self.physicalWidth)
-        let arrangement: [Float] = [-0.10, 0, 0.10]
+        let arrangement: [Float] = self.getArrangement(count: self.cardContents.count, increment: 0.1)
 
-        var count = 0
-        for cardItem in self.cardContents {
-            let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.025), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        for (index, cardItem) in self.cardContents.enumerated() {
+            let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.035), materials: [SimpleMaterial(color: .red, isMetallic: false)])
             internalEntity.generateCollisionShapes(recursive: true)
-            internalEntity.position.x = arrangement[count]
-            count += 1
+            internalEntity.position.x = arrangement[index]
             manager.sceneRoot!.addChild(internalEntity)
             let annotation = ScreenAnnotation(card: cardItem)
             annotation.setInternalEntity(with: internalEntity)
-            manager.arView?.installGestures(for: internalEntity as! HasCollision)
+            manager.arView?.installGestures([.scale, .translation], for: internalEntity)
             annotations.append(annotation)
         }
         
         return annotations
+    }
+    
+    private func getArrangement(count: Int, increment: Float) -> [Float] {
+        var arrangement: [Float] = []
+        
+        var current: Float = (Float(count / 2) / 10.0) * -1
+        print(current)
+        for _ in 0 ..< count {
+            arrangement.append(current)
+            current += increment
+        }
+        return arrangement
     }
 }

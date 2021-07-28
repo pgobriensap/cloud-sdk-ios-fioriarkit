@@ -99,7 +99,7 @@ public struct SingleImageARCardView<Scan: View, Card: View, Marker: View, CardIt
         .overlay(DismissButton(onDismiss: onDismiss).opacity(Double(0.8)), alignment: .topLeading)
         .overlay(showEditButton(), alignment: .topTrailing)
         .overlay(showAddButton(), alignment: .topTrailing)
-        .overlay(printVectors(), alignment: .topTrailing)
+        // .overlay(printVectors(), alignment: .topTrailing)
         .sheet(isPresented: $addAnnotationIsPresented) {
             AddAnnotationView(isPresented: $addAnnotationIsPresented, addAnnotation: arModel.addAnnotation)
         }

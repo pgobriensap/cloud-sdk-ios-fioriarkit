@@ -34,19 +34,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Save that Reality File and USDZ file to Documents/RealityFiles/ and Documents/USDZFiles/ repsectively
         let saveExampleRealityURL = realityDir.appendingPathComponent("ExampleRC.reality")
         let saveExampleUsdzURL = usdzDir.appendingPathComponent("ExampleRC.usdz")
-        let usdzAsZip = usdzDir.appendingPathComponent("ExampleDir.zip")
         
         FileManager.default.saveDataToDirectory(saveExampleRealityURL, saveData: exampleRCRealityData)
         FileManager.default.saveDataToDirectory(saveExampleUsdzURL, saveData: exampleRCUsdzData)
-        
-        if !FileManager.default.fileExists(atPath: usdzAsZip.path) {
-            do {
-                try FileManager.default.moveItem(at: URL(string: "file://" + saveExampleUsdzURL.path)!, to: URL(string: "file://" + usdzAsZip.path)!)
-            } catch {
-                print(error)
-            }
-        }
-        
+
         return true
     }
 }

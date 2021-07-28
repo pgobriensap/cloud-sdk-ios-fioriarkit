@@ -24,7 +24,7 @@ internal class MarkerAnchor: Entity, HasAnchoring {
     }
 
     internal required init() {
-        let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.025), materials: [SimpleMaterial(color: .red, isMetallic: false)])
+        let internalEntity = ModelEntity(mesh: MeshResource.generateSphere(radius: 0.035), materials: [SimpleMaterial(color: .red, isMetallic: false)])
         internalEntity.generateCollisionShapes(recursive: true)
         self.internalEnitity = internalEntity
     }
@@ -36,6 +36,6 @@ internal class MarkerAnchor: Entity, HasAnchoring {
     
     internal func showInternalEntity() {
         let redMaterial = SimpleMaterial(color: .red, isMetallic: false)
-        self.internalEnitity.components[ModelComponent.self] = ModelComponent(mesh: MeshResource.generateSphere(radius: 0.025), materials: [redMaterial])
+        self.internalEnitity.components[ModelComponent.self] = ModelComponent(mesh: MeshResource.generateSphere(radius: 0.035), materials: [redMaterial])
     }
 }
