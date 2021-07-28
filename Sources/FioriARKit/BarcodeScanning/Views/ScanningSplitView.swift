@@ -142,9 +142,8 @@ struct AddBarcodeSheet: View {
                 }
                 HStack{
                     Text("Payload:")
-                    Text(currentPayload.id).frame(
-                        maxWidth: .infinity,
-                        alignment: .leading)
+                    Text(currentPayload.id)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }.padding()
         }
