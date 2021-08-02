@@ -29,12 +29,18 @@ struct BarcodeModel: Identifiable, Hashable {
         }
 
         switch symbology {
-        case .qr:
+        case .QR:
             return "QR"
-        case .ean13:
+        case .EAN13:
             return "EAN-13"
-        case .code128:
+        case .EAN8:
+            return "EAN-8"
+        case .Code128:
             return "Code-128"
+        case .Code39:
+            return "Code-39"
+        case .UPCE:
+            return "UPCE"
         default:
             return ""
         }

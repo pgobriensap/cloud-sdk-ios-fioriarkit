@@ -35,6 +35,11 @@ open class CaptureSessionVC: UIViewController {
     let maximumZoom: CGFloat = 3.0
     var lastZoomFactor: CGFloat = 1.0
     
+    var barcodes: [VNBarcodeObservation] = []
+    var rectangles: [VNRectangleObservation] = []
+    var queues: [String: [CGFloat]] = [:]
+    var prev: [String: CGFloat] = [:]
+    
     // Vision Requests
     var detectBarcodeRequest: VNDetectBarcodesRequest {
         let barcodeRequest = VNDetectBarcodesRequest { request, _ in
@@ -46,10 +51,24 @@ open class CaptureSessionVC: UIViewController {
         }
         
         barcodeRequest.revision = VNDetectBarcodesRequestRevision1
-        barcodeRequest.symbologies = [.ean13, .qr, .code128]
+        barcodeRequest.symbologies = [.QR, .EAN13, .EAN8, .Code128, .Code39, .UPCE]
         
         return barcodeRequest
     }
+    
+    var detectRectangleRequest: VNDetectRectanglesRequest {
+        let rectangleRequest = VNDetectRectanglesRequest { request, _ in
+            DispatchQueue.main.async {
+                guard let results = request.results else { return }
+                self.rectangles = results.compactMap { $0 as? VNRectangleObservation }
+                // self.processRectangleClassification(rectangleObservations, barcodeResults)
+            }
+        }
+        return rectangleRequest
+    }
+    
+    var startSession: (() -> Void)?
+    var stopSession: (() -> Void)?
 
     var framesLeft = 10
     var currentFrame = 1
@@ -112,28 +131,71 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func startCaptureSession() {
-        var bestFormat: AVCaptureDevice.Format?
+//        var bestFormat: AVCaptureDevice.Format?
+//        var bestFrameRateRange: AVFrameRateRange?
+//        // var setExposure: Exposure = .min
+//
+//        for format in videoDevice.formats {
+//            print("+++++++")
+//            print(format)
+//            if format.isHighestPhotoQualitySupported {
+//                print("True")
+//                for range in format.videoSupportedFrameRateRanges {
+//                    if range.maxFrameRate > bestFrameRateRange?.maxFrameRate ?? 0 {
+//                        bestFormat = format
+//                        bestFrameRateRange = range
+//                    }
+//                }
+//            } else {
+//                print("False")
+//            }
+//            print("=========")
+//        }
         
-        for format in self.videoDevice.formats {
-            if format.isHighestPhotoQualitySupported {
-                bestFormat = format
-                break
-            }
-        }
-    
-        if let bestFormat = bestFormat {
-            do {
-                try self.videoDevice.lockForConfiguration()
-                self.videoDevice.activeFormat = bestFormat
-                self.captureSession.startRunning()
+//        captureSession.sessionPreset = AVCaptureSession.Preset.inputPriority // Required for the "activeFormat" of the device to be used
+//        let highresFormat = videoDevice.formats
+//            .filter { CMFormatDescriptionGetMediaSubType($0.formatDescription) == 875704422 }
+//            .max { a, b in CMVideoFormatDescriptionGetDimensions(a.formatDescription).width < CMVideoFormatDescriptionGetDimensions(b.formatDescription).width }
+//
+//        if let format = highresFormat {
+//            bestFormat = format
+//        }
+//
+//        if let bestFormat = bestFormat,
+//           let bestFrameRateRange = bestFrameRateRange {
+//            do {
+//                try self.videoDevice.lockForConfiguration()
+//                // Set the device's active format.
+//                self.videoDevice.activeFormat = bestFormat
+//
+//                // Set the device's min/max frame duration.
+//                let duration = bestFrameRateRange.minFrameDuration
+//                self.videoDevice.activeVideoMinFrameDuration = duration
+//                self.videoDevice.activeVideoMaxFrameDuration = duration
                 
-                print(self.videoDevice.activeFormat)
-                print(self.captureSession.sessionPreset)
-                // videoDevice.unlockForConfiguration()
-            } catch {
-                print(error)
-            }
-        }
+//                if videoDevice.isExposureModeSupported(.custom) {
+//                    self.videoDevice.setExposureModeCustom(duration: AVCaptureDevice.currentExposureDuration, iso: setExposure.value(device: videoDevice)) { _ in
+//                        print("Done Esposure")
+//                    }
+//                }
+//                self.captureSession.startRunning()
+//
+//                videoDevice.unlockForConfiguration()
+//                print(self.videoDevice.activeFormat)
+//                print(self.captureSession.sessionPreset)
+        ////                print(self.videoDevice.exposureMode.rawValue)
+//                // videoDevice.unlockForConfiguration()
+//            } catch {
+//                print(error)
+//            }
+//        } else {
+        self.captureSession.sessionPreset = .high
+        self.captureSession.startRunning()
+        // }
+    }
+    
+    func stopCaptureSession() {
+        self.captureSession.stopRunning()
     }
     
     // Clean up capture setup
@@ -172,6 +234,20 @@ open class CaptureSessionVC: UIViewController {
         }
     }
     
+    func processRectangleClassification(_ results: [VNRectangleObservation]) {
+        CATransaction.begin()
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+        self.detectionOverlay.sublayers = nil
+        
+        for rectangle in results {
+            let objectBounds = VNImageRectForNormalizedRect(rectangle.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
+            let barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds, "")
+            self.detectionOverlay.addSublayer(barcodeLayer)
+        }
+        self.updateLayerGeometry()
+        CATransaction.commit()
+    }
+    
     func processClassification(_ results: [VNBarcodeObservation]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
@@ -186,7 +262,7 @@ open class CaptureSessionVC: UIViewController {
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 
                 var barcodeLayer: CALayer?
-                if barcode.symbology == .qr {
+                if barcode.symbology == .QR {
                     barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds, payload)
                 } else {
                     // if !self.discoveredBarcodes.contains(payload) {
@@ -225,16 +301,28 @@ open class CaptureSessionVC: UIViewController {
         
         for barcode in results {
             if let payload = barcode.payloadStringValue {
-                guard barcode.symbology == .ean13 || barcode.symbology == .qr || barcode.symbology == .code128 else { return }
-                
+                guard [.QR, .EAN13, .EAN8, .Code128, .Code39, .UPCE].contains(barcode.symbology) else { return }
+
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
                 var bb: CGRect = .zero
                 
-                if barcode.symbology == .ean13 || barcode.symbology == .code128 {
-                    bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
+                if [.EAN13, .EAN8, .Code128, .Code39, .UPCE].contains(barcode.symbology) {
+                    if var previous = prev[payload] {
+                        let difference = abs(objectBounds.origin.y - previous)
+                        if difference > objectBounds.height {
+                            bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
+                        } else {
+                            bb = CGRect(origin: CGPoint(x: objectBounds.origin.x, y: previous), size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
+                        }
+                        self.prev[payload] = objectBounds.origin.y
+                    } else {
+                        self.prev[payload] = objectBounds.origin.y
+                        bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
+                    }
+                    // bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
                 }
                 
-                if barcode.symbology == .qr {
+                if barcode.symbology == .QR {
                     bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height, height: objectBounds.height))
                 }
                 
@@ -252,7 +340,7 @@ open class CaptureSessionVC: UIViewController {
 
                                 let animationGroup = CAAnimationGroup()
                                 animationGroup.animations = [translationAnimation]
-                                animationGroup.duration = 0.25
+                                animationGroup.duration = 0.15
                                 $0.add(animationGroup, forKey: "AllAnimations")
                                 self.discoveredBarcodes[payload] = Extent(position: bb.center, size: CGSize(width: bb.width, height: bb.height))
                             }
@@ -361,8 +449,8 @@ open class CaptureSessionVC: UIViewController {
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
 //        currentFrame += 1
-//        guard currentFrame.isMultiple(of: 5) else { return }
-        
+//        guard currentFrame.isMultiple(of: ) else { return }
+//
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
@@ -375,10 +463,9 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
         } catch {
             print(error)
         }
-        
-        if self.currentFrame > 10000 {
-            self.currentFrame = 1
-        }
+//        if self.currentFrame > 10000 {
+//            self.currentFrame = 1
+//        }
     }
     
     public func exifOrientationFromDeviceOrientation() -> CGImagePropertyOrientation {
@@ -398,6 +485,47 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
             exifOrientation = .up
         }
         return exifOrientation
+    }
+}
+
+enum Exposure {
+    case min, normal, max
+    
+    func value(device: AVCaptureDevice) -> Float {
+        switch self {
+        case .min:
+            return device.activeFormat.minISO
+        case .normal:
+            return AVCaptureDevice.currentISO
+        case .max:
+            return device.activeFormat.maxISO
+        }
+    }
+}
+
+struct TenQueue: CustomStringConvertible {
+    private var internalArray: [CGFloat] = []
+    
+    var description: String {
+        internalArray.description
+    }
+    
+    mutating func push(_ element: CGFloat) {
+        self.internalArray.insert(element, at: 0)
+        
+        if self.internalArray.count > 10 {
+            self.internalArray = self.internalArray.dropLast()
+        }
+    }
+    
+    func getAvg() -> CGFloat {
+        let sum = self.internalArray.reduce(.zero, +)
+        let avg = CGFloat(internalArray.count) / sum
+        return avg
+    }
+    
+    func count() -> Int {
+        self.internalArray.count
     }
 }
 

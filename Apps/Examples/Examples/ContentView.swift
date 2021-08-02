@@ -11,17 +11,17 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             List {
-                NavigationLink(destination: ARCardListView()) {
-                    Text("ARCards")
-                }
+//                NavigationLink(destination: ARCardListView()) {
+//                    Text("ARCards")
+//                }
                 
                 NavigationLink(destination: BarcodeListView()) {
                     Text("Barcode Scanning")
                 }
                 
-                NavigationLink(destination: DownloadsView()) {
-                    Text("Download Image Anchors")
-                }
+//                NavigationLink(destination: DownloadsView()) {
+//                    Text("Download Image Anchors")
+//                }
             }.navigationBarTitle("Examples")
         }.navigationViewStyle(StackNavigationViewStyle())
     }

@@ -21,6 +21,8 @@ public struct ScanningSplitView: View {
     
     @State var foundPayloads: Set<BarcodeModel> = []
     @State var addBarcodeSheetIsPresented = false
+    @State var startSession: (() -> Void)? = nil
+    @State var stopSession: (() -> Void)? = nil
     
     public init() {}
     
@@ -96,7 +98,7 @@ struct BarcodeRow: View {
                     .font(.system(size: 25))
             }
             
-            Text("Payload: \(barcodeModel.id)")
+            Text("\(barcodeModel.symbologyString) \(barcodeModel.id)")
                 .padding(.trailing, 10)
         }
         .padding()
@@ -116,40 +118,44 @@ struct AddBarcodeSheet: View {
     
     var body: some View {
         VStack {
-            HStack {
-                Button("Dismiss") {
-                    isPresented.toggle()
-                }
-                Spacer()
-                Button(action: {
-                    neededBarcodes.append(BarcodeModel(id: currentPayload.id, title: title, isDiscovered: false, symbology: .ean13)) // TODO: Have user select symbology
-                    title = ""
-                    currentPayload = .empty
-                    added = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        added = false
+            VStack {
+                HStack {
+                    Button("Dismiss") {
+                        isPresented.toggle()
                     }
-                }, label: {
-                    Text(added ? "Success!" : "Add Barcode")
-                })
-            }.padding()
+                    Spacer()
+                    Button(action: {
+                        if currentPayload != .empty {
+                            neededBarcodes.append(BarcodeModel(id: currentPayload.id, title: title.isEmpty ? "Title Unknown" : title, isDiscovered: false, symbology: currentPayload.symbology))
+                        }
+                        title = ""
+                        currentPayload = .empty
+                        added = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            added = false
+                        }
+                    }, label: {
+                        Text(added ? "Success!" : "Add Barcode")
+                    })
+                }.padding()
+                
+                VStack {
+                    HStack {
+                        Text("Title:")
+                        TextField("Add Title...", text: $title)
+                            .textFieldStyle(PlainTextFieldStyle())
+                    }
+                    HStack {
+                        Text("Payload:")
+                        Text(currentPayload.id)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }.padding()
+            }
             
-            VStack{
-                HStack{
-                    Text("Title:")
-                    TextField("...", text: $title)
-                        .textFieldStyle(PlainTextFieldStyle())
-                }
-                HStack{
-                    Text("Payload:")
-                    Text(currentPayload.id)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }.padding()
-        }
-        
             CaptureSessionContainer(currentPayload: $currentPayload, discoveredPayloads: $foundPayloads, neededBarcodes: $needBarcodes)
                 .padding()
                 .ignoresSafeArea(.keyboard)
+        }
     }
 }
