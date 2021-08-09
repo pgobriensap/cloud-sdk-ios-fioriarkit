@@ -21,7 +21,7 @@ open class CaptureSessionVC: UIViewController {
     var videoDevice: AVCaptureDevice!
     
     // Capture Session
-    var bufferSize: CGSize = .zero
+    var bufferSize = CGSize(width: 1920, height: 1080) //  CGSize(width: 4032, height: 3024)
     var rootLayer: CALayer!
     private var detectionOverlay: CALayer!
     var captureSession = AVCaptureSession()
@@ -113,8 +113,13 @@ open class CaptureSessionVC: UIViewController {
                 self.videoDevice.focusMode = .continuousAutoFocus
             }
             let dimensions = CMVideoFormatDescriptionGetDimensions(videoDevice.activeFormat.formatDescription)
-            self.bufferSize.width = CGFloat(dimensions.width)
-            self.bufferSize.height = CGFloat(dimensions.height)
+            let height = UIScreen.main.bounds.height
+            let width = UIScreen.main.bounds.width
+            let scale = UIScreen.main.scale
+            print("CMDimensions: Width: \(dimensions.width), Height: \(dimensions.height)")
+            print("Sceen Dimensions: Width: \(scale * width), Height: \(scale * height)")
+            // self.bufferSize.width = CGFloat(dimensions.width)
+            // self.bufferSize.height = CGFloat(dimensions.height)
             self.videoDevice.unlockForConfiguration()
         } catch {
             print(error)
@@ -131,26 +136,26 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func startCaptureSession() {
-//        var bestFormat: AVCaptureDevice.Format?
-//        var bestFrameRateRange: AVFrameRateRange?
-//        // var setExposure: Exposure = .min
-//
-//        for format in videoDevice.formats {
-//            print("+++++++")
-//            print(format)
-//            if format.isHighestPhotoQualitySupported {
-//                print("True")
-//                for range in format.videoSupportedFrameRateRanges {
-//                    if range.maxFrameRate > bestFrameRateRange?.maxFrameRate ?? 0 {
-//                        bestFormat = format
-//                        bestFrameRateRange = range
-//                    }
-//                }
-//            } else {
-//                print("False")
-//            }
-//            print("=========")
-//        }
+        var bestFormat: AVCaptureDevice.Format?
+        var bestFrameRateRange: AVFrameRateRange?
+        // var setExposure: Exposure = .min
+
+        for format in self.videoDevice.formats {
+            // print("+++++++")
+            // print(format)
+            if format.isHighestPhotoQualitySupported {
+                // print("True")
+                for range in format.videoSupportedFrameRateRanges {
+                    if range.maxFrameRate > bestFrameRateRange?.maxFrameRate ?? 0 {
+                        // bestFormat = format
+                        // bestFrameRateRange = range
+                    }
+                }
+            } else {
+                // print("False")
+            }
+            // print("=========")
+        }
         
 //        captureSession.sessionPreset = AVCaptureSession.Preset.inputPriority // Required for the "activeFormat" of the device to be used
 //        let highresFormat = videoDevice.formats
@@ -160,38 +165,39 @@ open class CaptureSessionVC: UIViewController {
 //        if let format = highresFormat {
 //            bestFormat = format
 //        }
-//
-//        if let bestFormat = bestFormat,
-//           let bestFrameRateRange = bestFrameRateRange {
-//            do {
-//                try self.videoDevice.lockForConfiguration()
-//                // Set the device's active format.
-//                self.videoDevice.activeFormat = bestFormat
-//
-//                // Set the device's min/max frame duration.
+
+        if let bestFormat = bestFormat,
+           let bestFrameRateRange = bestFrameRateRange
+        {
+            do {
+                try self.videoDevice.lockForConfiguration()
+                // Set the device's active format.
+                self.videoDevice.activeFormat = bestFormat
+
+                // Set the device's min/max frame duration.
 //                let duration = bestFrameRateRange.minFrameDuration
 //                self.videoDevice.activeVideoMinFrameDuration = duration
 //                self.videoDevice.activeVideoMaxFrameDuration = duration
                 
-//                if videoDevice.isExposureModeSupported(.custom) {
-//                    self.videoDevice.setExposureModeCustom(duration: AVCaptureDevice.currentExposureDuration, iso: setExposure.value(device: videoDevice)) { _ in
-//                        print("Done Esposure")
-//                    }
-//                }
-//                self.captureSession.startRunning()
-//
-//                videoDevice.unlockForConfiguration()
-//                print(self.videoDevice.activeFormat)
-//                print(self.captureSession.sessionPreset)
-        ////                print(self.videoDevice.exposureMode.rawValue)
-//                // videoDevice.unlockForConfiguration()
-//            } catch {
-//                print(error)
-//            }
-//        } else {
-        self.captureSession.sessionPreset = .high
-        self.captureSession.startRunning()
-        // }
+                // if videoDevice.isExposureModeSupported(.custom) {
+                // self.videoDevice.setExposureModeCustom(duration: AVCaptureDevice.currentExposureDuration, iso: setExposure.value(device: videoDevice)) { _ in
+                //  print("Done Esposure")
+                // }
+                // }
+                self.captureSession.startRunning()
+
+                self.videoDevice.unlockForConfiguration()
+                print(self.videoDevice.activeFormat)
+                print(self.captureSession.sessionPreset)
+                //                print(self.videoDevice.exposureMode.rawValue)
+                self.videoDevice.unlockForConfiguration()
+            } catch {
+                print(error)
+            }
+        } else {
+            self.captureSession.sessionPreset = .high
+            self.captureSession.startRunning()
+        }
     }
     
     func stopCaptureSession() {
@@ -304,6 +310,7 @@ open class CaptureSessionVC: UIViewController {
                 guard [.QR, .EAN13, .EAN8, .Code128, .Code39, .UPCE].contains(barcode.symbology) else { return }
 
                 let objectBounds = VNImageRectForNormalizedRect(barcode.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
+                // print("inside", self.bufferSize)
                 var bb: CGRect = .zero
                 
                 if [.EAN13, .EAN8, .Code128, .Code39, .UPCE].contains(barcode.symbology) {
@@ -319,7 +326,6 @@ open class CaptureSessionVC: UIViewController {
                         self.prev[payload] = objectBounds.origin.y
                         bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
                     }
-                    // bb = CGRect(origin: objectBounds.origin, size: CGSize(width: objectBounds.height * 0.30, height: objectBounds.height))
                 }
                 
                 if barcode.symbology == .QR {
@@ -448,24 +454,21 @@ open class CaptureSessionVC: UIViewController {
 
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-//        currentFrame += 1
-//        guard currentFrame.isMultiple(of: ) else { return }
-//
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return
-        }
+        let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
+
+        // Lock the base Address
+//        CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.readOnly)
+//        self.bufferSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
+//        CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
         
+        print("PixelBuffer: Width: \(self.bufferSize.width), Height: \(self.bufferSize.height)")
         let exifOrientation = self.exifOrientationFromDeviceOrientation()
-        
         let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: exifOrientation, options: [:])
         do {
             try imageRequestHandler.perform([self.detectBarcodeRequest])
         } catch {
             print(error)
         }
-//        if self.currentFrame > 10000 {
-//            self.currentFrame = 1
-//        }
     }
     
     public func exifOrientationFromDeviceOrientation() -> CGImagePropertyOrientation {
