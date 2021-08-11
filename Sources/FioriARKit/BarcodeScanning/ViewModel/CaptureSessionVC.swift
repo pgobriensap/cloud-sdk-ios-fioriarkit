@@ -21,7 +21,7 @@ open class CaptureSessionVC: UIViewController {
     var videoDevice: AVCaptureDevice!
     
     // Capture Session
-    var bufferSize = CGSize(width: 1920, height: 1080) //  CGSize(width: 4032, height: 3024)
+    var bufferSize = CGSize(width: 4032, height: 3024) // CGSize(width: 1920, height: 1080)
     var rootLayer: CALayer!
     private var detectionOverlay: CALayer!
     var captureSession = AVCaptureSession()
@@ -82,7 +82,7 @@ open class CaptureSessionVC: UIViewController {
     }
     
     func setupAVCapture() {
-        self.videoDevice = AVCaptureDevice.default(for: .video)! // .DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
+        self.videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) // .DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
         self.deviceInput = try! AVCaptureDeviceInput(device: self.videoDevice)
         
         self.captureSession.beginConfiguration()
@@ -147,8 +147,8 @@ open class CaptureSessionVC: UIViewController {
                 // print("True")
                 for range in format.videoSupportedFrameRateRanges {
                     if range.maxFrameRate > bestFrameRateRange?.maxFrameRate ?? 0 {
-                        // bestFormat = format
-                        // bestFrameRateRange = range
+                        bestFormat = format
+                        bestFrameRateRange = range
                     }
                 }
             } else {
@@ -189,7 +189,7 @@ open class CaptureSessionVC: UIViewController {
                 self.videoDevice.unlockForConfiguration()
                 print(self.videoDevice.activeFormat)
                 print(self.captureSession.sessionPreset)
-                //                print(self.videoDevice.exposureMode.rawValue)
+                // print(self.videoDevice.exposureMode.rawValue)
                 self.videoDevice.unlockForConfiguration()
             } catch {
                 print(error)
@@ -454,6 +454,9 @@ open class CaptureSessionVC: UIViewController {
 
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+//        currentFrame += 1
+//        guard currentFrame.isMultiple(of: 5) else { return }
+        
         let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
 
         // Lock the base Address
@@ -461,7 +464,6 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
 //        self.bufferSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
 //        CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
         
-        print("PixelBuffer: Width: \(self.bufferSize.width), Height: \(self.bufferSize.height)")
         let exifOrientation = self.exifOrientationFromDeviceOrientation()
         let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: exifOrientation, options: [:])
         do {
@@ -469,6 +471,10 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
         } catch {
             print(error)
         }
+        
+//        if currentFrame == 10000 {
+//            currentFrame = 1
+//        }
     }
     
     public func exifOrientationFromDeviceOrientation() -> CGImagePropertyOrientation {
