@@ -21,7 +21,7 @@ open class CaptureSessionVC: UIViewController {
     var videoDevice: AVCaptureDevice!
     
     // Capture Session
-    var bufferSize = CGSize(width: 4032, height: 3024) // CGSize(width: 1920, height: 1080)
+    var bufferSize = CGSize(width: 1920, height: 1080) // CGSize(width: 4032, height: 3024) for high resolution
     var rootLayer: CALayer!
     private var detectionOverlay: CALayer!
     var captureSession = AVCaptureSession()
@@ -30,6 +30,8 @@ open class CaptureSessionVC: UIViewController {
     private let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
     private var discoveredBarcodes: [String: Extent] = [:]
     var deviceInput: AVCaptureDeviceInput!
+    
+    var focusPoint: CGPoint = .zero
     
     let minimumZoom: CGFloat = 1.0
     let maximumZoom: CGFloat = 3.0
@@ -55,20 +57,6 @@ open class CaptureSessionVC: UIViewController {
         
         return barcodeRequest
     }
-    
-    var detectRectangleRequest: VNDetectRectanglesRequest {
-        let rectangleRequest = VNDetectRectanglesRequest { request, _ in
-            DispatchQueue.main.async {
-                guard let results = request.results else { return }
-                self.rectangles = results.compactMap { $0 as? VNRectangleObservation }
-                // self.processRectangleClassification(rectangleObservations, barcodeResults)
-            }
-        }
-        return rectangleRequest
-    }
-    
-    var startSession: (() -> Void)?
-    var stopSession: (() -> Void)?
 
     var framesLeft = 10
     var currentFrame = 1
@@ -78,7 +66,38 @@ open class CaptureSessionVC: UIViewController {
         self.setupAVCapture()
         self.setupLayers()
         self.updateLayerGeometry()
+        self.setupSlider()
+        self.setupTapToFocus()
         self.startCaptureSession()
+    }
+    
+    func setupTapToFocus() {
+        let tg = UITapGestureRecognizer(target: self, action: #selector(self.tapToFocus))
+        self.view.addGestureRecognizer(tg)
+    }
+    
+    func setupSlider() {
+        let mySlider = UISlider(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
+        mySlider.center = CGPoint(x: 207, y: view.bounds.maxY - 160)
+        view.addSubview(mySlider)
+        
+        mySlider.minimumValue = 0
+        mySlider.maximumValue = 1
+        mySlider.isContinuous = true
+        mySlider.addTarget(self, action: #selector(self.controlFocus), for: .valueChanged)
+    }
+    
+    @objc func controlFocus(_ sender: UISlider) {
+        do {
+            try self.videoDevice.lockForConfiguration()
+            self.videoDevice.setFocusModeLocked(lensPosition: sender.value, completionHandler: { _ in
+                // print(timestamp)
+            })
+            self.videoDevice.unlockForConfiguration()
+            
+        } catch {
+            // just ignore
+        }
     }
     
     func setupAVCapture() {
@@ -138,7 +157,6 @@ open class CaptureSessionVC: UIViewController {
     func startCaptureSession() {
         var bestFormat: AVCaptureDevice.Format?
         var bestFrameRateRange: AVFrameRateRange?
-        // var setExposure: Exposure = .min
 
         for format in self.videoDevice.formats {
             // print("+++++++")
@@ -147,8 +165,8 @@ open class CaptureSessionVC: UIViewController {
                 // print("True")
                 for range in format.videoSupportedFrameRateRanges {
                     if range.maxFrameRate > bestFrameRateRange?.maxFrameRate ?? 0 {
-                        bestFormat = format
-                        bestFrameRateRange = range
+                        // bestFormat = format
+                        // bestFrameRateRange = range
                     }
                 }
             } else {
@@ -210,6 +228,26 @@ open class CaptureSessionVC: UIViewController {
         self.previewLayer = nil
     }
     
+    @objc func tapToFocus(_ sender: UITapGestureRecognizer) {
+        let point = sender.location(in: self.view)
+        let focusPoint = self.previewLayer.captureDevicePointConverted(fromLayerPoint: point)
+        
+        do {
+            try self.videoDevice.lockForConfiguration()
+            
+            self.videoDevice.focusPointOfInterest = focusPoint
+            // videoDevice.focusMode = .continuousAutoFocus
+            self.videoDevice.focusMode = .autoFocus
+            // device.focusMode = .locked
+            self.videoDevice.exposurePointOfInterest = focusPoint
+            self.videoDevice.exposureMode = AVCaptureDevice.ExposureMode.continuousAutoExposure
+            self.videoDevice.unlockForConfiguration()
+            
+        } catch {
+            // just ignore
+        }
+    }
+
     @objc func pinch(_ pinch: UIPinchGestureRecognizer) {
         let device = self.deviceInput.device
 
@@ -239,21 +277,7 @@ open class CaptureSessionVC: UIViewController {
         default: break
         }
     }
-    
-    func processRectangleClassification(_ results: [VNRectangleObservation]) {
-        CATransaction.begin()
-        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
-        self.detectionOverlay.sublayers = nil
-        
-        for rectangle in results {
-            let objectBounds = VNImageRectForNormalizedRect(rectangle.boundingBox, Int(self.bufferSize.width), Int(self.bufferSize.height))
-            let barcodeLayer = self.createRoundedRectLayerWithBounds(objectBounds, "")
-            self.detectionOverlay.addSublayer(barcodeLayer)
-        }
-        self.updateLayerGeometry()
-        CATransaction.commit()
-    }
-    
+
     func processClassification(_ results: [VNBarcodeObservation]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
@@ -384,30 +408,6 @@ open class CaptureSessionVC: UIViewController {
         return translationAnim
     }
     
-    func createXAnimation(currentWidth: CGFloat, newWidth: CGFloat) -> CABasicAnimation {
-        let scale = currentWidth / newWidth
-        let translationAnim = CABasicAnimation(keyPath: "transform.scale.x")
-        translationAnim.fromValue = 1
-        translationAnim.toValue = scale
-        translationAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
-        translationAnim.isRemovedOnCompletion = true
-        translationAnim.fillMode = .forwards
-        translationAnim.beginTime = 0
-        return translationAnim
-    }
-    
-    func createYAnimation(currentWidth: CGFloat, newWidth: CGFloat) -> CABasicAnimation {
-        let scale = currentWidth / newWidth
-        let translationAnim = CABasicAnimation(keyPath: "transform.scale.y")
-        translationAnim.fromValue = 1
-        translationAnim.toValue = scale
-        translationAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
-        translationAnim.isRemovedOnCompletion = true
-        translationAnim.fillMode = .forwards
-        translationAnim.beginTime = 0
-        return translationAnim
-    }
-    
     func setupLayers() {
         self.detectionOverlay = CALayer() // container layer that has all the renderings of the observations
         self.detectionOverlay.name = "DetectionOverlay"
@@ -455,7 +455,11 @@ open class CaptureSessionVC: UIViewController {
 extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
 //        currentFrame += 1
-//        guard currentFrame.isMultiple(of: 5) else { return }
+//        if currentFrame.isMultiple(of: 5) {
+//            self.focusOnCenter()
+//        } else {
+//            return
+//        }
         
         let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
 
@@ -509,32 +513,6 @@ enum Exposure {
         case .max:
             return device.activeFormat.maxISO
         }
-    }
-}
-
-struct TenQueue: CustomStringConvertible {
-    private var internalArray: [CGFloat] = []
-    
-    var description: String {
-        internalArray.description
-    }
-    
-    mutating func push(_ element: CGFloat) {
-        self.internalArray.insert(element, at: 0)
-        
-        if self.internalArray.count > 10 {
-            self.internalArray = self.internalArray.dropLast()
-        }
-    }
-    
-    func getAvg() -> CGFloat {
-        let sum = self.internalArray.reduce(.zero, +)
-        let avg = CGFloat(internalArray.count) / sum
-        return avg
-    }
-    
-    func count() -> Int {
-        self.internalArray.count
     }
 }
 
