@@ -21,6 +21,9 @@ struct BarcodeModel: Identifiable, Hashable {
         self.symbology = symbology
     }
     
+    static let oneDimensionalBarcodes: [VNBarcodeSymbology] = [.ean13, .ean8, .code128, .code39, .upce]
+    static let twoDimensionalBarcodes: [VNBarcodeSymbology] = [.qr]
+    static let acceptedBarcodes = oneDimensionalBarcodes + twoDimensionalBarcodes
     static let empty = BarcodeModel(id: "", title: "", isDiscovered: false, symbology: nil)
     
     var symbologyString: String {
@@ -29,17 +32,17 @@ struct BarcodeModel: Identifiable, Hashable {
         }
 
         switch symbology {
-        case .QR:
+        case .qr:
             return "QR"
-        case .EAN13:
+        case .ean13:
             return "EAN-13"
-        case .EAN8:
+        case .ean8:
             return "EAN-8"
-        case .Code128:
+        case .code128:
             return "Code-128"
-        case .Code39:
+        case .code39:
             return "Code-39"
-        case .UPCE:
+        case .upce:
             return "UPCE"
         default:
             return ""
