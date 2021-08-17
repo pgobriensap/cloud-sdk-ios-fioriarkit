@@ -10,8 +10,7 @@ import AVFoundation
 import UIKit
 import Vision
 
-extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
+extension CameraView: AVCaptureVideoDataOutputSampleBufferDelegate {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
         let exifOrientation = CaptureSessionUtils.exifOrientationFromDeviceOrientation()
@@ -22,12 +21,15 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
             print(error)
         }
     }
-    
+}
+
+extension CameraView {
     public func setupSession() {
         self.setupAVCapture()
         self.setupLayers()
         self.updateLayerGeometry()
-        self.setupSlider()
+        self.setupSliders()
+        self.setupResolutionToggle()
         self.setupTapToFocus()
         self.startCaptureSession()
     }
@@ -76,12 +78,12 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
         self.captureSession.commitConfiguration()
         self.previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
         self.previewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        self.rootLayer = view.layer
+        self.rootLayer = self.layer
         self.previewLayer.frame = self.rootLayer.bounds
         self.rootLayer.addSublayer(self.previewLayer)
         
         let pinchRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(self.pinch(_:)))
-        self.view.addGestureRecognizer(pinchRecognizer)
+        self.addGestureRecognizer(pinchRecognizer)
     }
     
     func setupLayers() {
@@ -117,20 +119,38 @@ extension CaptureSessionVC: AVCaptureVideoDataOutputSampleBufferDelegate {
         CATransaction.commit()
     }
     
-    func setupSlider() {
-        let mySlider = UISlider(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
-        mySlider.center = CGPoint(x: 207, y: view.bounds.maxY - 160)
-        view.addSubview(mySlider)
+    func setupSliders() {
+        let focusSlider = UISlider(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
+        focusSlider.center = CGPoint(x: 207, y: self.bounds.maxY - 200)
+        focusSlider.minimumValue = 0
+        focusSlider.maximumValue = 1
+        focusSlider.isContinuous = true
+        focusSlider.addTarget(self, action: #selector(self.controlFocus), for: .valueChanged)
+        self.addSubview(focusSlider)
+
         
-        mySlider.minimumValue = 0
-        mySlider.maximumValue = 1
-        mySlider.isContinuous = true
-        mySlider.addTarget(self, action: #selector(self.controlFocus), for: .valueChanged)
+        let zoomSlider = UISlider(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
+        zoomSlider.center = CGPoint(x: 207, y: self.bounds.maxY - 160)
+        zoomSlider.minimumValue = Float(self.deviceInput.device.minAvailableVideoZoomFactor)
+        zoomSlider.maximumValue = Float(self.deviceInput.device.maxAvailableVideoZoomFactor)
+        zoomSlider.isContinuous = true
+        zoomSlider.addTarget(self, action: #selector(self.controlZoom), for: .valueChanged)
+        self.addSubview(zoomSlider)
+
     }
     
+    func setupResolutionToggle() {
+        let resToggle = UISwitch()
+        resToggle.center = CGPoint(x: self.bounds.maxX-50, y: self.bounds.minY+70)
+//        resToggle.addTarget(self, action: #selector(self.toggleResolution), for: .valueChanged)
+        self.addSubview(resToggle)
+        
+        
+        
+    }
     func setupTapToFocus() {
         let tg = UITapGestureRecognizer(target: self, action: #selector(self.tapToFocus))
-        self.view.addGestureRecognizer(tg)
+        self.addGestureRecognizer(tg)
     }
     
     func stopCaptureSession() {

@@ -19,13 +19,13 @@ internal struct CaptureSessionContainer: UIViewControllerRepresentable {
         Coordinator(self)
     }
     
-    func makeUIViewController(context: Context) -> CaptureSessionVC {
-        let vc = CaptureSessionVC()
+    func makeUIViewController(context: Context) -> BarcodeDetectionVC {
+        let vc = BarcodeDetectionVC()
         vc.barcodeDelegate = context.coordinator
         return vc
     }
     
-    func updateUIViewController(_ uiViewController: CaptureSessionVC, context: Context) {}
+    func updateUIViewController(_ uiViewController: BarcodeDetectionVC, context: Context) {}
     
     class Coordinator: NSObject, BarcodeOutputDelegate {
         var parent: CaptureSessionContainer
@@ -47,5 +47,5 @@ internal struct CaptureSessionContainer: UIViewControllerRepresentable {
         }
     }
 
-    typealias UIViewControllerType = CaptureSessionVC
+    typealias UIViewControllerType = BarcodeDetectionVC
 }
