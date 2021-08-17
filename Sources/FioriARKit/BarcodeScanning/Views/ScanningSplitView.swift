@@ -29,6 +29,7 @@ public struct ScanningSplitView: View {
     public var body: some View {
         ZStack(alignment: .bottom) {
             CaptureSessionContainer(currentPayload: $currentPayload, discoveredPayloads: $foundPayloads, neededBarcodes: $needBarcodes)
+                .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
                 .edgesIgnoringSafeArea(.all)
             BottomDrawer(neededBarcodes: $needBarcodes)
         }
