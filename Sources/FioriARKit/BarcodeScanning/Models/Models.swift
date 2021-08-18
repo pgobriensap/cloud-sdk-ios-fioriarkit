@@ -49,3 +49,13 @@ struct BarcodeModel: Identifiable, Hashable {
         }
     }
 }
+
+enum Resolution {
+    static let normal = CGSize(width: 1920, height: 1080)
+    static let hd = CGSize(width: 4032, height: 3024)
+}
+
+struct Extent {
+    var position: CGPoint
+    var size: CGSize
+}

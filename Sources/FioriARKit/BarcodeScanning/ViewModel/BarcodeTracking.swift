@@ -1,12 +1,12 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Diaz, Ernesto on 8/16/21.
 //
 
-import Foundation
 import AVFoundation
+import Foundation
 import UIKit
 import Vision
 
@@ -15,13 +15,12 @@ public protocol BarcodeOutputDelegate: AnyObject {
 }
 
 public class BarcodeTracking {
-    
     private var previousBarcodesScanned: [String: CGFloat] = [:]
     private var discoveredBarcodes: [String: Extent] = [:]
+    
     private var framesLeft = 10
     
-    
-    func processAnimatedClassification(_ results: [VNBarcodeObservation], view: CameraView) {
+    func processAnimatedClassification(_ results: [VNBarcodeObservation], view: CameraDetectionView) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         
@@ -114,5 +113,11 @@ public class BarcodeTracking {
         shapeLayer.backgroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [0.6, 0.98, 0.6, 0.7])
         shapeLayer.cornerRadius = 7
         return shapeLayer
+    }
+}
+
+extension CGRect {
+    var center: CGPoint {
+        CGPoint(x: self.midX, y: self.midY)
     }
 }
