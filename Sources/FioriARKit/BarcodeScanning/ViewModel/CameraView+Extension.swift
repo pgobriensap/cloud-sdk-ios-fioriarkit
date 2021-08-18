@@ -65,10 +65,8 @@ extension CameraDetectionView {
         resToggle.addTarget(self, action: #selector(self.toggleResolution), for: .valueChanged)
         self.addSubview(resToggle)
         resToggle.translatesAutoresizingMaskIntoConstraints = false
-        resToggle.centerXAnchor.constraint(
-            equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -resToggle.bounds.width).isActive = true
-        resToggle.centerYAnchor.constraint(
-            equalTo: self.safeAreaLayoutGuide.topAnchor).isActive = true
+        resToggle.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -resToggle.bounds.width).isActive = true
+        resToggle.centerYAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor).isActive = true
     }
 
     func setupTapToFocus() {
