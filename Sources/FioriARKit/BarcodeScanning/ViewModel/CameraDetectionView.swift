@@ -21,6 +21,7 @@ public class CameraDetectionView: UIView {
     let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
     var deviceInput: AVCaptureDeviceInput!
     
+    var previousRes = Resolution.normal
     var bufferSize = Resolution.normal // CGSize(width: 4032, height: 3024) for high resolution
     var detectionOverlay: CALayer!
 
@@ -145,8 +146,15 @@ public class CameraDetectionView: UIView {
         CATransaction.commit()
     }
 
-    func toggleResolution() {
-        self.bufferSize = self.bufferSize.equalTo(Resolution.normal) ? Resolution.hd : Resolution.normal
+    @objc func toggleResolution() {
+        do {
+            try self.videoDevice.lockForConfiguration()
+            self.captureSession.sessionPreset = previousRes.equalTo(Resolution.normal) ? .hd4K3840x2160 : .high
+            previousRes = previousRes.equalTo(Resolution.normal) ? Resolution.hd : Resolution.normal
+            self.videoDevice.unlockForConfiguration()
+        } catch {
+            print(error)
+        }
     }
 
     // MARK: Focus
