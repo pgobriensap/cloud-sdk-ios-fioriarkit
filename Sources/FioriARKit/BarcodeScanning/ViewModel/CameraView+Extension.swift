@@ -45,19 +45,30 @@ extension CameraDetectionView: AVCaptureVideoDataOutputSampleBufferDelegate {
 extension CameraDetectionView {
     func setupSliders() {
         let focusSlider = UISlider(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
-        focusSlider.center = self.center
+        self.addSubview(focusSlider)
+        focusSlider.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            focusSlider.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            focusSlider.centerYAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor, constant: -150),
+            focusSlider.widthAnchor.constraint(equalToConstant: focusSlider.bounds.width),
+            focusSlider.heightAnchor.constraint(equalToConstant: focusSlider.bounds.height)
+        ])
         focusSlider.minimumValue = 0
         focusSlider.maximumValue = 1
         focusSlider.isContinuous = true
         focusSlider.addTarget(self, action: #selector(self.controlFocus), for: .valueChanged)
-        self.addSubview(focusSlider)
     }
     
     func setupResolutionToggle() {
         let resToggle = UISwitch()
         resToggle.center = self.center
-//        resToggle.addTarget(self, action: #selector(self.toggleResolution), for: .valueChanged)
+        resToggle.addTarget(self, action: #selector(self.toggleResolution), for: .valueChanged)
         self.addSubview(resToggle)
+        resToggle.translatesAutoresizingMaskIntoConstraints = false
+        resToggle.centerXAnchor.constraint(
+            equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -resToggle.bounds.width).isActive = true
+        resToggle.centerYAnchor.constraint(
+            equalTo: self.safeAreaLayoutGuide.topAnchor).isActive = true
     }
 
     func setupTapToFocus() {
