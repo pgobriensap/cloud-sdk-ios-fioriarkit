@@ -153,7 +153,7 @@ struct AddBarcodeSheet: View {
                 }.padding()
             }
             
-            CaptureSessionContainer(currentPayload: $currentPayload, discoveredPayloads: $foundPayloads, neededBarcodes: $needBarcodes)
+            CaptureSessionContainer(currentPayload: $currentPayload, discoveredPayloads: $foundPayloads, neededBarcodes: $needBarcodes, hasCameraViewControls: false)
                 .padding()
                 .ignoresSafeArea(.keyboard)
         }

@@ -14,6 +14,7 @@ internal struct CaptureSessionContainer: UIViewControllerRepresentable {
     @Binding var currentPayload: BarcodeModel
     @Binding var discoveredPayloads: Set<BarcodeModel>
     @Binding var neededBarcodes: [BarcodeModel]
+    var hasCameraViewControls: Bool = true
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -22,6 +23,7 @@ internal struct CaptureSessionContainer: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> BarcodeDetectionVC {
         let vc = BarcodeDetectionVC()
         vc.barcodeDelegate = context.coordinator
+        vc.hasCameraViewControls = self.hasCameraViewControls
         return vc
     }
     

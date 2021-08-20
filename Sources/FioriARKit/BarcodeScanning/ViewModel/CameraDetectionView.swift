@@ -24,7 +24,6 @@ public class CameraDetectionView: UIView {
     var previousRes = Resolution.normal
     var bufferSize = Resolution.normal // CGSize(width: 4032, height: 3024) for high resolution
     var detectionOverlay: CALayer!
-
     private var lastZoomFactor: CGFloat = 1.0
     
     var detectBarcodeRequest: VNDetectBarcodesRequest {
@@ -42,16 +41,16 @@ public class CameraDetectionView: UIView {
         return barcodeRequest
     }
     
-    public init(recognitionMode: BarcodeTracking, barcodeDelegate: BarcodeOutputDelegate) {
+    public init(recognitionMode: BarcodeTracking, hasCameraViewControls: Bool) {
         self.barcodeRecognition = recognitionMode
-        self.barcodeDelegate = barcodeDelegate
         super.init(frame: .zero)
-        
         self.setupAVCapture()
         self.setupLayers()
         self.updateLayerGeometry()
-        self.setupSliders()
-        self.setupResolutionToggle()
+        if hasCameraViewControls {
+            self.setupSliders()
+            self.setupResolutionToggle()
+        }
         self.setupTapToFocus()
         self.startCaptureSession()
     }
@@ -146,7 +145,7 @@ public class CameraDetectionView: UIView {
         CATransaction.commit()
     }
 
-    @objc func toggleResolution() {
+    @objc func toggleResolution(_ sender: UISwitch) {
         do {
             try self.videoDevice.lockForConfiguration()
             self.captureSession.sessionPreset = previousRes.equalTo(Resolution.normal) ? .hd4K3840x2160 : .high

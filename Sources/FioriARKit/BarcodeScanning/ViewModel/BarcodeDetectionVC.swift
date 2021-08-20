@@ -8,13 +8,14 @@
 import UIKit
 
 class BarcodeDetectionVC: UIViewController {
-    var barcodeDelegate: BarcodeOutputDelegate?
-
+    weak var barcodeDelegate: BarcodeOutputDelegate?
+    var hasCameraViewControls: Bool!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let barcodeRecognition = BarcodeTracking()
-        let cameraView = CameraDetectionView(recognitionMode: barcodeRecognition, barcodeDelegate: self.barcodeDelegate!)
-
+        let cameraView = CameraDetectionView(recognitionMode: barcodeRecognition, hasCameraViewControls: hasCameraViewControls)
+        cameraView.barcodeDelegate = barcodeDelegate
         self.view.addSubview(cameraView)
         cameraView.translatesAutoresizingMaskIntoConstraints = false
         cameraView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true

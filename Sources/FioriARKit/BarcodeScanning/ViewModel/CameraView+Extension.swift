@@ -53,20 +53,40 @@ extension CameraDetectionView {
             focusSlider.widthAnchor.constraint(equalToConstant: focusSlider.bounds.width),
             focusSlider.heightAnchor.constraint(equalToConstant: focusSlider.bounds.height)
         ])
+        let focusImage = UIImage(systemName: "camera.aperture", withConfiguration: UIImage.SymbolConfiguration(font: .systemFont(ofSize: 32)))
         focusSlider.minimumValue = 0
+        focusSlider.minimumValueImage = focusImage
         focusSlider.maximumValue = 1
         focusSlider.isContinuous = true
         focusSlider.addTarget(self, action: #selector(self.controlFocus), for: .valueChanged)
     }
     
     func setupResolutionToggle() {
+        let padding = CGFloat(5)
+        let hdLabel = UILabel()
+        let uhdLabel = UILabel()
         let resToggle = UISwitch()
+        hdLabel.text = "HD"
+        uhdLabel.text = "4K"
+        
+        self.addSubview(resToggle)
+        self.addSubview(hdLabel)
+        self.addSubview(uhdLabel)
+        
+        resToggle.translatesAutoresizingMaskIntoConstraints = false
+        hdLabel.translatesAutoresizingMaskIntoConstraints = false
+        uhdLabel.translatesAutoresizingMaskIntoConstraints = false
         resToggle.center = self.center
         resToggle.addTarget(self, action: #selector(self.toggleResolution), for: .valueChanged)
-        self.addSubview(resToggle)
-        resToggle.translatesAutoresizingMaskIntoConstraints = false
-        resToggle.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -resToggle.bounds.width).isActive = true
-        resToggle.centerYAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor).isActive = true
+        
+        NSLayoutConstraint.activate([
+            resToggle.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -resToggle.bounds.width-padding*4),
+            resToggle.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: resToggle.bounds.height-padding*10),
+            hdLabel.trailingAnchor.constraint(equalTo: resToggle.leadingAnchor, constant: -padding),
+            hdLabel.centerYAnchor.constraint(equalTo: resToggle.centerYAnchor),
+            uhdLabel.leadingAnchor.constraint(equalTo: resToggle.trailingAnchor, constant: padding),
+            uhdLabel.centerYAnchor.constraint(equalTo: resToggle.centerYAnchor)
+        ])
     }
 
     func setupTapToFocus() {
