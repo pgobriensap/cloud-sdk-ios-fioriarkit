@@ -9,6 +9,11 @@ import Foundation
 import Vision
 
 struct BarcodeModel: Identifiable, Hashable {
+    static let oneDimensionalBarcodes: [VNBarcodeSymbology] = [.ean13, .ean8, .code128, .code39, .upce]
+    static let twoDimensionalBarcodes: [VNBarcodeSymbology] = [.qr]
+    static let acceptedBarcodes = oneDimensionalBarcodes + twoDimensionalBarcodes
+    static let empty = BarcodeModel(id: "", title: "", isDiscovered: false, symbology: nil)
+
     var id: String
     var title: String
     var isDiscovered: Bool
@@ -20,11 +25,6 @@ struct BarcodeModel: Identifiable, Hashable {
         self.isDiscovered = isDiscovered
         self.symbology = symbology
     }
-    
-    static let oneDimensionalBarcodes: [VNBarcodeSymbology] = [.ean13, .ean8, .code128, .code39, .upce]
-    static let twoDimensionalBarcodes: [VNBarcodeSymbology] = [.qr]
-    static let acceptedBarcodes = oneDimensionalBarcodes + twoDimensionalBarcodes
-    static let empty = BarcodeModel(id: "", title: "", isDiscovered: false, symbology: nil)
     
     var symbologyString: String {
         guard let symbology = symbology else {

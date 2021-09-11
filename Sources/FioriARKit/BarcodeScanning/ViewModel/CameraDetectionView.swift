@@ -148,8 +148,8 @@ public class CameraDetectionView: UIView {
     @objc func toggleResolution(_ sender: UISwitch) {
         do {
             try self.videoDevice.lockForConfiguration()
-            self.captureSession.sessionPreset = previousRes.equalTo(Resolution.normal) ? .hd4K3840x2160 : .high
-            previousRes = previousRes.equalTo(Resolution.normal) ? Resolution.hd : Resolution.normal
+            self.captureSession.sessionPreset = sender.isOn ? .hd4K3840x2160 : .high
+            // self.bufferSize = sender.isOn ? Resolution.
             self.videoDevice.unlockForConfiguration()
         } catch {
             print(error)
@@ -161,11 +161,8 @@ public class CameraDetectionView: UIView {
     @objc func controlFocus(_ sender: UISlider) {
         do {
             try self.videoDevice.lockForConfiguration()
-            self.videoDevice.setFocusModeLocked(lensPosition: sender.value, completionHandler: { _ in
-                // print(timestamp)
-            })
+            self.videoDevice.setFocusModeLocked(lensPosition: sender.value)
             self.videoDevice.unlockForConfiguration()
-            
         } catch {
             // just ignore
         }
@@ -180,7 +177,7 @@ public class CameraDetectionView: UIView {
             self.videoDevice.unlockForConfiguration()
             
         } catch {
-            // just ignore
+            print(error)
         }
     }
     
