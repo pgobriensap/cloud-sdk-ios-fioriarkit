@@ -134,7 +134,7 @@ public extension SingleImageARCardView where Scan == ARScanView,
     Marker == MarkerView
 {
     init(arModel: ARAnnotationViewModel<CardItem>,
-         image: Image,
+         image: Binding<Image?>,
          cardAction: ((CardItem.ID) -> Void)?)
     {
         self.init(arModel: arModel,
@@ -151,7 +151,7 @@ public extension SingleImageARCardView where Scan == ARScanView,
         _ConditionalContent<Text, EmptyView>, CardItem>
 {
     init(arModel: ARAnnotationViewModel<CardItem>,
-         image: Image,
+         image: Binding<Image?>,
          @ViewBuilder markerLabel: @escaping (MarkerControl.State, Image?) -> Marker,
          cardAction: ((CardItem.ID) -> Void)?)
     {
@@ -166,7 +166,7 @@ public extension SingleImageARCardView where Scan == ARScanView,
     Marker == MarkerView
 {
     init(arModel: ARAnnotationViewModel<CardItem>,
-         image: Image,
+         image: Binding<Image?>,
          @ViewBuilder cardLabel: @escaping (CardItem, Bool) -> Card)
     {
         self.init(arModel: arModel,
@@ -196,7 +196,7 @@ public extension SingleImageARCardView where Card == CardView<Text,
 
 public extension SingleImageARCardView where Scan == ARScanView {
     init(arModel: ARAnnotationViewModel<CardItem>,
-         image: Image,
+         image: Binding<Image?>,
          @ViewBuilder cardLabel: @escaping (CardItem, Bool) -> Card,
          @ViewBuilder markerLabel: @escaping (MarkerControl.State, Image?) -> Marker)
     {

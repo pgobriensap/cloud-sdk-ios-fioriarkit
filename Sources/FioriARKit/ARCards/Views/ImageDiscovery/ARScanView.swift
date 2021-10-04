@@ -17,18 +17,50 @@ import SwiftUI
  */
 
 public struct ARScanView: View {
-    let image: Image
+    @Binding var image: Image?
     @Binding var anchorPosition: CGPoint?
     
     public var body: some View {
         ZStack {
             if anchorPosition != nil {
                 ImageMatchedView(anchorPosition: $anchorPosition)
+                
             } else {
-                CollapsingView(image: image)
+                if let image = image {
+                    CollapsingView(image: image)
+                        .transition(AnyTransition.opacity.animation(.easeInOut(duration: 1)))
+                    
+                } else {
+                    VStack(spacing: 30) {
+                        ProgressView()
+                            .progressViewStyle(FioriNextProgressStyle())
+                            .frame(width: 200, height: 200)
+                        Text("Processing... May take a moment")
+                            .font(.system(size: 24))
+                            .foregroundColor(Color.white)
+                    }
+                }
             }
         }
         .animation(.easeInOut(duration: 1.2), value: anchorPosition)
+    }
+}
+
+struct FioriNextProgressStyle: ProgressViewStyle {
+    var strokeColor = Color.blue
+    var strokeWidth = 5
+    @State private var isAnimating: Bool = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        ZStack {
+            Circle()
+                .trim(from: 0, to: 0.25)
+                .stroke(strokeColor, style: StrokeStyle(lineWidth: CGFloat(strokeWidth), lineCap: .round))
+                .rotationEffect(.degrees(isAnimating ? 360 : 0))
+                .animateOnAppear(animation: Animation.linear.repeatForever(autoreverses: false).speed(0.50)) {
+                    isAnimating.toggle()
+                }
+        }
     }
 }
 

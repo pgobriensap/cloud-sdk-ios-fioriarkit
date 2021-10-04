@@ -13,7 +13,7 @@ struct CarEngineExampleContentView: View {
     
     var body: some View {
         SingleImageARCardView(arModel: arModel,
-                              image: Image("carSticker"),
+                              image: .constant(Image("carSticker")),
                               cardAction: { id in
                                   // set the card action for id corresponding to the CardItemModel
                                   print(id)

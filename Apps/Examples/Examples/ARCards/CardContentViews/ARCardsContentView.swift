@@ -10,15 +10,21 @@ import SwiftUI
 
 struct ARCardsDefaultContentView: View {
     @StateObject var arModel = ARAnnotationViewModel<StringIdentifyingCardItem>()
+    @State var image: Image? = nil
     
     var body: some View {
         SingleImageARCardView(arModel: arModel,
-                              image: Image("qrImage"),
+                              image: $image,
                               cardAction: { id in
                                   // set the card action for id corresponding to the CardItemModel
                                   print(id)
                               })
             .onAppear(perform: loadInitialData)
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    image = Image("qrImage")
+                }
+            }
     }
     
     func loadInitialData() {

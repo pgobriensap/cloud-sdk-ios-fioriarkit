@@ -13,7 +13,7 @@ struct ARCardsJSONLoadingContentView: View {
     
     var body: some View {
         SingleImageARCardView(arModel: arModel,
-                              image: Image("qrImage"),
+                              image: .constant(Image("qrImage")),
                               cardAction: { id in
                                   // set the card action for id corresponding to the CardItemModel
                                   print(id)
