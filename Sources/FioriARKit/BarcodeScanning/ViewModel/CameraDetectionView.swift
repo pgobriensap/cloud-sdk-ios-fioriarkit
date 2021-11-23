@@ -34,10 +34,12 @@ public class CameraDetectionView: UIView {
                 self.barcodeRecognition.processAnimatedClassification(barcodeObservations, view: self)
             }
         }
-        
-        barcodeRequest.revision = VNDetectBarcodesRequestRevision1
+        if #available(iOS 15.0, *) {
+            barcodeRequest.revision = VNDetectBarcodesRequestRevision2
+        } else {
+            barcodeRequest.revision = VNDetectBarcodesRequestRevision1
+        }
         barcodeRequest.symbologies = BarcodeModel.acceptedBarcodes
-        
         return barcodeRequest
     }
     
@@ -67,7 +69,7 @@ public class CameraDetectionView: UIView {
             connection.videoOrientation = UIDevice.current.orientation.videoOrientation
         }
     }
-
+    
     func setupAVCapture() {
         self.videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) // .DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first else { return }
         self.deviceInput = try! AVCaptureDeviceInput(device: self.videoDevice)
@@ -96,8 +98,11 @@ public class CameraDetectionView: UIView {
         captureConnection?.isEnabled = true
         do {
             try self.videoDevice.lockForConfiguration()
+            
             if self.videoDevice.isFocusModeSupported(.continuousAutoFocus) {
-                self.videoDevice.focusMode = .continuousAutoFocus
+                self.videoDevice.isSmoothAutoFocusEnabled = false
+                self.videoDevice.autoFocusRangeRestriction = .far // TRY
+                self.videoDevice.focusMode = .continuousAutoFocus // SET LAST
             }
             self.videoDevice.unlockForConfiguration()
         } catch {
